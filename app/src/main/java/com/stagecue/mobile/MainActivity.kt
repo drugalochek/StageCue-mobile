@@ -93,6 +93,7 @@ private fun StageCueScreen(
     player: ExoPlayer,
     onSave: () -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     var currentUri by remember { mutableStateOf<String?>(null) }
     var playing by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf("Фонотека") }
@@ -115,10 +116,9 @@ private fun StageCueScreen(
     ) { uris ->
         uris.forEach { uri ->
             try {
-                // Keep access to selected documents after the picker closes.
-                // SAF grants are scoped to files explicitly selected by the user.
-                // Persistable permission is best-effort for providers that support it.
-                // The app never requests broad storage access.
+                context.contentResolver.takePersistableUriPermission(
+                    uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
             } catch (_: Exception) { }
             val text = uri.lastPathSegment?.substringAfterLast('/')?.substringAfterLast(':')
                 ?.takeIf { it.isNotBlank() } ?: "Аудиофайл"
