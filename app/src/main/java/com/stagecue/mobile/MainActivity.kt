@@ -35,12 +35,12 @@ import androidx.media3.exoplayer.ExoPlayer
 import org.json.JSONArray
 import org.json.JSONObject
 
-private val Bg = Color(0xFF171B22)
-private val Panel = Color(0xFF232A34)
-private val Panel2 = Color(0xFF2B3441)
-private val Blue = Color(0xFF3987E8)
-private val Txt = Color(0xFFE6EAF0)
-private val Muted = Color(0xFF9AA6B5)
+private val Bg = Color(0xFF111722)
+private val Panel = Color(0xFF192231)
+private val Panel2 = Color(0xFF202C3D)
+private val Blue = Color(0xFF4D9BFA)
+private val Txt = Color(0xFFF0F4FA)
+private val Muted = Color(0xFF91A0B4)
 
 data class CueTrack(val uri: String, val name: String, val slot: Int)
 
@@ -138,13 +138,13 @@ private fun StageCueScreen(
         player.play()
     }
 
-    Column(Modifier.fillMaxSize().background(Bg).padding(16.dp)) {
+    Column(Modifier.fillMaxSize().background(Bg).padding(horizontal = 16.dp, vertical = 12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 Modifier.size(42.dp).background(Blue, RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Text("SC", color = Color.White, fontWeight = FontWeight.Black, fontSize = 17.sp)
+                Text("S", color = Blue, fontWeight = FontWeight.Black, fontSize = 23.sp)
             }
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
