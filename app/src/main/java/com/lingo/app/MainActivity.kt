@@ -52,7 +52,11 @@ class MainActivity : ComponentActivity() {
                     initialStage = prefs.getInt("stage", 1),
                     initialXp = prefs.getInt("xp", 0),
                     initialStreak = prefs.getInt("streak", 1),
-                    onSave = { stage, xp -> prefs.edit().putInt("stage", stage).putInt("xp", xp).apply() }
+                    initialCourse = prefs.getString("course", "en") ?: "en",
+                    initialGoal = prefs.getInt("daily_goal", 10),
+                    onboardingDone = prefs.getBoolean("onboarding_done", false),
+                    onSave = { stage, xp -> prefs.edit().putInt("stage", stage).putInt("xp", xp).apply() },
+                    onSaveSettings = { course, goal -> prefs.edit().putString("course", course).putInt("daily_goal", goal).putBoolean("onboarding_done", true).apply() }
                 )
             }
         }
@@ -60,7 +64,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSave: (Int, Int) -> Unit) {
+private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, initialCourse: String, initialGoal: Int, onboardingDone: Boolean, onSave: (Int, Int) -> Unit, onSaveSettings: (String, Int) -> Unit) {
     var stage by remember { mutableIntStateOf(initialStage.coerceAtLeast(1)) }
     var xp by remember { mutableIntStateOf(initialXp) }
     var streak by remember { mutableIntStateOf(initialStreak) }
@@ -72,7 +76,10 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSa
     var correct by remember { mutableIntStateOf(0) }
     var feedback by remember { mutableStateOf(false) }
     var bearEmotion by remember { mutableIntStateOf(1) }
-    var courseId by remember { mutableStateOf("en") }
+    var courseId by remember { mutableStateOf(initialCourse) }
+    var dailyGoal by remember { mutableIntStateOf(initialGoal) }
+    var setupDone by remember { mutableStateOf(onboardingDone) }
+    var completedLessons by remember { mutableIntStateOf(0) }
     var languageMenuOpen by remember { mutableStateOf(false) }
     val course = CourseCatalog.find(courseId)
     val unit = course.firstUnit
@@ -92,6 +99,17 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSa
         selected = -1
         correct = 0
         feedback = false
+    }
+
+    if (!setupDone) {
+        OnboardingScreen(initialCourse = courseId) { chosenCourse, chosenGoal, startingLevel ->
+            courseId = chosenCourse
+            dailyGoal = chosenGoal
+            setupDone = true
+            onSaveSettings(chosenCourse, chosenGoal)
+            if (startingLevel == "placement") { lesson = true; skipTest = true }
+        }
+        return
     }
 
     Scaffold(
@@ -143,7 +161,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSa
             }
             when (tab) {
                 "Учиться" -> {
-                    item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it; question = 0; selected = -1; feedback = false }) }
+                    item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it; question = 0; selected = -1; feedback = false; onSaveSettings(it, dailyGoal) }) }
                     item {
                         Surface(color = Color.White, shape = RoundedCornerShape(22.dp)) {
                             Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -151,7 +169,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSa
                                     Text(course.name.uppercase(), color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                                     Text(unit.title, color = Ink, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                                     Text(course.nativeName + " · " + unit.goal, color = Muted, fontSize = 13.sp)
-                                    LinearProgressIndicator(progress = { 0.35f }, modifier = Modifier.fillMaxWidth().height(7.dp), color = Blue, trackColor = Line)
+                                    LinearProgressIndicator(progress = { (completedLessons % 4) / 4f }, modifier = Modifier.fillMaxWidth().height(7.dp), color = Blue, trackColor = Line)
                                 }
                                 Spacer(Modifier.width(10.dp))
                                 BearMascot(Modifier.size(104.dp), emotion = bearEmotion)
@@ -178,8 +196,8 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSa
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.CheckCircle, null, tint = Green)
                                     Spacer(Modifier.width(8.dp))
-                                    Text("Занимайся 5 минут", fontWeight = FontWeight.SemiBold, color = Ink, modifier = Modifier.weight(1f))
-                                    Text("1 / 5 мин", color = Muted, fontSize = 12.sp)
+                                    Text("Занимайся $dailyGoal минут", fontWeight = FontWeight.SemiBold, color = Ink, modifier = Modifier.weight(1f))
+                                    Text("0 / $dailyGoal мин", color = Muted, fontSize = 12.sp)
                                 }
                                 LinearProgressIndicator(progress = { 0.2f }, modifier = Modifier.fillMaxWidth().height(7.dp), color = Green, trackColor = Line)
                             }
@@ -208,36 +226,19 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSa
     }
 
     if (lesson) {
-        AlertDialog(
-            onDismissRequest = { lesson = false; question = 0; correct = 0; selected = -1; feedback = false },
-            title = { Text(if (skipTest) "Проверка этапа" else "Мини-урок", fontWeight = FontWeight.Bold) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        BearMascot(Modifier.size(76.dp), emotion = bearEmotion)
-                        Spacer(Modifier.width(10.dp))
-                        Text(if (feedback && selected == q.answer) "Точно! Это правильный ответ." else if (feedback) "Промах. " + q.explanation else "Выбирай ответ. Я проверю.", color = Muted, fontSize = 13.sp)
-                    }
-                    Text("Вопрос ${question + 1} из ${questions.size}", color = Muted, fontSize = 12.sp)
-                    LinearProgressIndicator(progress = { (question + 1) / questions.size.toFloat() }, modifier = Modifier.fillMaxWidth())
-                    Text(q.prompt, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-                    q.options.forEachIndexed { i, answer ->
-                        OutlinedButton(
-                            onClick = { if (!feedback) { selected = i; feedback = true; if (i == q.answer) { correct++; bearEmotion = 1 } else { bearEmotion = 6 } } },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = when { feedback && i == q.answer -> Color(0xFFE8F7EF); feedback && i == selected -> Color(0xFFFFEEEE); else -> Color.White })
-                        ) { Text(answer, color = Ink) }
-                    }
-                    if (feedback) Text(if (selected == q.answer) "Верно. " + q.explanation else "Не совсем. " + q.explanation, color = if (selected == q.answer) Green else Color(0xFFD36A6A), fontSize = 13.sp)
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    if (!feedback) return@TextButton
-                    if (question == questions.lastIndex) finishTest() else { question++; selected = -1; feedback = false }
-                }) { Text(if (question == questions.lastIndex) "Завершить" else "Далее") }
-            },
-            dismissButton = { TextButton(onClick = { lesson = false; question = 0; correct = 0; selected = -1; feedback = false }) { Text("Выйти") } }
+        LessonFlow(
+            course = course,
+            placement = skipTest,
+            onExit = { lesson = false; skipTest = false },
+            onComplete = { score, total ->
+                xp += score * 5
+                completedLessons++
+                if (score >= total * 0.7f) stage++
+                bearEmotion = if (score >= total * 0.7f) 8 else 13
+                onSave(stage, xp)
+                lesson = false
+                skipTest = false
+            }
         )
     }
 }
@@ -245,15 +246,20 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSa
 
 @Composable
 private fun CoursePicker(course: LanguageCourse, expanded: Boolean, onExpandedChange: (Boolean) -> Unit, onSelect: (String) -> Unit) {
-    Box {
-        OutlinedButton(onClick = { onExpandedChange(true) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) {
-            Text(course.flag + "  " + course.name + " · " + course.nativeName, modifier = Modifier.weight(1f), textAlign = TextAlign.Start)
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        OutlinedButton(onClick = { onExpandedChange(true) }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp)) {
+            FlagBadge(course.id, Modifier.size(width = 32.dp, height = 22.dp))
+            Spacer(Modifier.width(10.dp))
+            Text(course.name + " · " + course.nativeName, modifier = Modifier.weight(1f), textAlign = TextAlign.Start)
             Icon(Icons.Default.ExpandMore, contentDescription = null)
         }
+        Spacer(Modifier.width(8.dp))
+        FilledIconButton(onClick = { onExpandedChange(true) }) { Icon(Icons.Default.Add, contentDescription = "Добавить курс") }
         DropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }) {
             CourseCatalog.courses.forEach { item ->
                 DropdownMenuItem(
-                    text = { Text(item.flag + "  " + item.name + " · " + item.nativeName) },
+                    leadingIcon = { FlagBadge(item.id, Modifier.size(width = 30.dp, height = 20.dp)) },
+                    text = { Text(item.name + " · " + item.nativeName) },
                     onClick = { onSelect(item.id); onExpandedChange(false) }
                 )
             }
