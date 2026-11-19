@@ -113,7 +113,7 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
         }
     }
 
-    Dialog(onDismissRequest = onExit, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+    Dialog(onDismissRequest = onExit, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(color = Pale, shape = RoundedCornerShape(0.dp), modifier = Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 24.dp, end = 24.dp, top = 28.dp, bottom = 30.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
                 if (finished) {
