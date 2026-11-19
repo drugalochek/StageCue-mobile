@@ -124,7 +124,7 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                         IconButton(onClick = onExit) { Icon(Icons.Default.ArrowBack, contentDescription = ui("Закрыть урок", "Close lesson"), tint = Ink) }
                         Column(Modifier.weight(1f)) {
                             Text(if (placement) ui("Проверка уровня", "Placement check") else course.name, fontWeight = FontWeight.Bold, color = Ink)
-                            Text(ui("Шаг ", "Step ") + (index + 1) + " из " + tasks.size, color = Muted, fontSize = 12.sp)
+                            Text(ui("Шаг ", "Step ") + (index + 1) + ui(" из ", " of ") + tasks.size, color = Muted, fontSize = 12.sp)
                         }
                         Text((index * 100 / tasks.size).toString() + "%", color = Blue, fontWeight = FontWeight.Bold)
                     }
@@ -327,9 +327,9 @@ internal fun OnboardingScreen(
             }
             1 -> {
                 Text(ui("Зачем тебе язык?", "Why are you learning?"), fontSize = 25.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
-                listOf("Для путешествий", "Для общения", "Для учёбы", "Для себя и интереса").forEach { choice ->
+                listOf("Для путешествий" to "For travel", "Для общения" to "For conversation", "Для учёбы" to "For studies", "Для себя и интереса" to "Personal interest").forEach { (choice, choiceEn) ->
                     Surface(color = if (reason == choice) Color(0xFFE9EDFF) else Color.White, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth().padding(top = 9.dp).clickable { reason = choice }) {
-                        Text(choice, Modifier.padding(16.dp), color = Ink, fontWeight = FontWeight.SemiBold)
+                        Text(ui(choice, choiceEn), Modifier.padding(16.dp), color = Ink, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
@@ -348,7 +348,7 @@ internal fun OnboardingScreen(
             else -> {
                 Text(ui("С чего начнём?", "Where should we start?"), fontSize = 25.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
                 Text(ui("Можно начать с основ или пройти короткую проверку уровня.", "Start with the basics or take a short placement check."), color = Muted)
-                listOf("beginner" to "Я начинаю с нуля", "placement" to "Я уже кое-что знаю").forEach { (id, label) ->
+                listOf("beginner" to ui("Я начинаю с нуля", "I am a complete beginner"), "placement" to ui("Я уже кое-что знаю", "I already know some of it")).forEach { (id, label) ->
                     Surface(color = if (level == id) Color(0xFFE9EDFF) else Color.White, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth().padding(top = 9.dp).clickable { level = id }) {
                         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) { Text(label, modifier = Modifier.weight(1f), color = Ink, fontWeight = FontWeight.SemiBold); if (level == id) Icon(Icons.Default.Check, null, tint = Blue) }
                     }
