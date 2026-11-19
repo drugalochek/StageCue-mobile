@@ -195,7 +195,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                     CourseCatalog.writing(course.id)?.let { task -> item { WritingCard(task = task) } }
                     item {
                         Text("Ежедневная цель", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Ink)
-                        Surface(color = Color.White, shape = RoundedCornerShape(18.dp)) {
+                        Surface(color = Card, shape = RoundedCornerShape(18.dp)) {
                             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.CheckCircle, null, tint = Green)
@@ -233,7 +233,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                     item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it; onSaveSettings(it, dailyGoal) }) }
                     items(CourseCatalog.courses.size) { index ->
                         val item = CourseCatalog.courses[index]
-                        Surface(color = Color.White, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth().clickable { courseId = item.id; tab = "Учиться"; onSaveSettings(item.id, dailyGoal) }) {
+                        Surface(color = Card, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth().clickable { courseId = item.id; tab = "Учиться"; onSaveSettings(item.id, dailyGoal) }) {
                             Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                                 FlagBadge(item.id, Modifier.size(width = 42.dp, height = 28.dp))
                                 Spacer(Modifier.width(12.dp))
@@ -248,7 +248,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                     item { Text("Главы · " + course.name, color = Ink, fontWeight = FontWeight.Bold, fontSize = 18.sp) }
                     items(course.units.size) { index ->
                         val chapter = course.units[index]
-                        Surface(color = Color.White, shape = RoundedCornerShape(14.dp)) {
+                        Surface(color = Card, shape = RoundedCornerShape(14.dp)) {
                             Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Text("ГЛАВА ${index + 1}", color = Blue, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                 Spacer(Modifier.width(10.dp))
@@ -314,7 +314,7 @@ private fun CoursePicker(course: LanguageCourse, expanded: Boolean, onExpandedCh
 @Composable
 private fun DialogueCard(course: LanguageCourse) {
     val dialogue = course.firstUnit.dialogue
-    Surface(color = Color.White, shape = RoundedCornerShape(20.dp)) {
+    Surface(color = Card, shape = RoundedCornerShape(20.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("ДИАЛОГ · " + course.nativeName.uppercase(), color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             Text(course.firstUnit.title, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
@@ -331,7 +331,7 @@ private fun DialogueCard(course: LanguageCourse) {
 
 @Composable
 private fun ReadingCard(reading: ReadingText) {
-    Surface(color = Color.White, shape = RoundedCornerShape(20.dp)) {
+    Surface(color = Card, shape = RoundedCornerShape(20.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
             Text("ЧИТАЕМ И ПОНИМАЕМ", color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             Text(reading.title, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
@@ -357,7 +357,7 @@ private fun ReadingCard(reading: ReadingText) {
 
 @Composable
 private fun GrammarCard(point: GrammarPoint) {
-    Surface(color = Color.White, shape = RoundedCornerShape(20.dp)) {
+    Surface(color = Card, shape = RoundedCornerShape(20.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
             Text("КАК СТРОИТЬ ФРАЗЫ", color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             Text(point.title, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
@@ -380,7 +380,7 @@ private fun GrammarCard(point: GrammarPoint) {
 private fun WritingCard(task: WritingTask) {
     var answer by remember(task.title) { mutableStateOf("") }
     var showSample by remember(task.title) { mutableStateOf(false) }
-    Surface(color = Color.White, shape = RoundedCornerShape(20.dp)) {
+    Surface(color = Card, shape = RoundedCornerShape(20.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("СОБСТВЕННЫЙ ТЕКСТ", color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             Text(task.title, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
@@ -410,7 +410,7 @@ private fun WritingCard(task: WritingTask) {
 
 @Composable
 private fun StageCard(stage: Int, onStart: () -> Unit, onSkip: () -> Unit) {
-    Surface(color = Color.White, shape = RoundedCornerShape(20.dp)) {
+    Surface(color = Card, shape = RoundedCornerShape(20.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(color = CardRaised, shape = RoundedCornerShape(12.dp)) {
@@ -477,7 +477,7 @@ private fun BearSpeech(message: String, emotion: Int = 2) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         BearMascot(Modifier.size(88.dp), emotion = emotion)
         Spacer(Modifier.width(10.dp))
-        Surface(color = Color.White, shape = RoundedCornerShape(18.dp)) {
+        Surface(color = Card, shape = RoundedCornerShape(18.dp)) {
             Text(message, Modifier.padding(14.dp), color = Ink, fontSize = 14.sp)
         }
     }
@@ -485,7 +485,7 @@ private fun BearSpeech(message: String, emotion: Int = 2) {
 
 @Composable
 private fun QuestCard(title: String, description: String, progress: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
-    Surface(color = Color.White, shape = RoundedCornerShape(18.dp)) {
+    Surface(color = Card, shape = RoundedCornerShape(18.dp)) {
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Surface(color = Color(0xFFE9EDFF), shape = RoundedCornerShape(12.dp)) { Icon(icon, null, tint = Blue, modifier = Modifier.padding(11.dp)) }
             Spacer(Modifier.width(12.dp))
@@ -495,7 +495,7 @@ private fun QuestCard(title: String, description: String, progress: String, icon
     }
 }
 @Composable private fun WordCard(word: String, translation: String, category: String) {
-    Surface(color = Color.White, shape = RoundedCornerShape(16.dp)) {
+    Surface(color = Card, shape = RoundedCornerShape(16.dp)) {
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) { Text(word, color = Ink, fontWeight = FontWeight.Bold, fontSize = 17.sp); Text(translation, color = Muted); }
             Text(category, color = Blue, fontSize = 11.sp)
@@ -503,7 +503,7 @@ private fun QuestCard(title: String, description: String, progress: String, icon
     }
 }
 @Composable private fun StatCard(label: String, value: String) {
-    Surface(color = Color.White, shape = RoundedCornerShape(16.dp)) {
+    Surface(color = Card, shape = RoundedCornerShape(16.dp)) {
         Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(label, color = Muted, modifier = Modifier.weight(1f)); Text(value, color = Ink, fontWeight = FontWeight.Bold)
         }
