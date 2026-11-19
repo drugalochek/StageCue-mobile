@@ -87,7 +87,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
     var stage by remember { mutableIntStateOf(initialStage.coerceAtLeast(1)) }
     var xp by remember { mutableIntStateOf(initialXp) }
     var streak by remember { mutableIntStateOf(initialStreak) }
-    var tab by remember { mutableStateOf("Учиться") }
+    var tab by remember { mutableStateOf("Главная") }
     var lesson by remember { mutableStateOf(false) }
     var skipTest by remember { mutableStateOf(false) }
     var question by remember { mutableIntStateOf(0) }
@@ -99,6 +99,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
     var dailyGoal by remember { mutableIntStateOf(initialGoal) }
     var setupDone by remember { mutableStateOf(onboardingDone) }
     var completedLessons by remember { mutableIntStateOf(0) }
+    var storeCategory by remember { mutableIntStateOf(0) }
     var languageMenuOpen by remember { mutableStateOf(false) }
     var appLanguageMenuOpen by remember { mutableStateOf(false) }
     LaunchedEffect(initialAppLanguage) { AppLanguage.changePreference(initialAppLanguage) }
@@ -136,146 +137,175 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
     Scaffold(
         containerColor = Pale,
         bottomBar = {
-            NavigationBar(containerColor = Card, tonalElevation = 0.dp, windowInsets = WindowInsets(0.dp), modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp).clip(RoundedCornerShape(24.dp))) {
-                listOf("Учиться", "Квесты", "Словарь", "Магазин", "Профиль").forEach { item ->
-                    NavigationBarItem(
-                        selected = tab == item,
-                        onClick = { tab = item },
-                        icon = {
-                            Icon(when (item) {
-                                "Учиться" -> Icons.Default.School
-                                "Квесты" -> Icons.Default.Flag
-                                "Словарь" -> Icons.Default.MenuBook
-                                "Магазин" -> Icons.Default.ShoppingBag
-                                else -> Icons.Default.Person
-                            }, contentDescription = item)
-                        },
-                        label = { Text(when(item) { "Учиться" -> ui("Учиться", "Learn"); "Квесты" -> ui("Квесты", "Quests"); "Словарь" -> ui("Словарь", "Words"); "Магазин" -> ui("Магазин", "Shop"); else -> ui("Профиль", "Profile") }, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(selectedIconColor = Blue, indicatorColor = CardRaised, selectedTextColor = Blue, unselectedIconColor = Muted, unselectedTextColor = Muted)
-                    )
+            NavigationBar(containerColor = Card.copy(alpha = 0.96f), tonalElevation = 0.dp, windowInsets = WindowInsets(0.dp), modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp).clip(RoundedCornerShape(24.dp))) {
+                listOf("Главная", "Прогресс", "Квесты", "Магазин").forEach { item ->
+                    NavigationBarItem(selected = tab == item, onClick = { tab = item },
+                        icon = { Icon(when (item) {
+                            "Главная" -> Icons.Default.Home
+                            "Прогресс" -> Icons.Default.BarChart
+                            "Квесты" -> Icons.Default.EmojiEvents
+                            else -> Icons.Default.CardGiftcard
+                        }, contentDescription = item) },
+                        label = { Text(when(item) {
+                            "Главная" -> ui("Главная", "Home")
+                            "Прогресс" -> ui("Прогресс", "Progress")
+                            "Квесты" -> ui("Квесты", "Quests")
+                            else -> ui("Магазин", "Shop")
+                        }, fontSize = 10.sp) },
+                        colors = NavigationBarItemDefaults.colors(selectedIconColor = Blue, indicatorColor = CardRaised, selectedTextColor = Blue, unselectedIconColor = Muted, unselectedTextColor = Muted))
                 }
             }
         }
     ) { pad ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(pad),
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Star, contentDescription = null, tint = Blue, modifier = Modifier.size(24.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text("Lingo", fontSize = 25.sp, color = Ink, fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.5).sp)
-                        }
-                        Text(when (tab) { "Учиться" -> ui("Продолжим обучение?", "Keep learning?") ; "Квесты" -> ui("Квесты", "Your quests"); "Словарь" -> ui("Словарь", "Your vocabulary"); "Магазин" -> ui("Магазин", "Rewards shop"); else -> ui("Профиль", "Profile") }, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Muted)
-                    }
-                    Surface(shape = RoundedCornerShape(18.dp), color = CardRaised) {
-                        Row(Modifier.padding(horizontal = 12.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.LocalFireDepartment, null, tint = Color(0xFFFF934D), modifier = Modifier.size(20.dp))
-                            Spacer(Modifier.width(5.dp))
-                            Text("$streak", fontWeight = FontWeight.Bold, color = Ink)
-                            Spacer(Modifier.width(12.dp))
-                            Icon(Icons.Default.Bolt, null, tint = Color(0xFFFFB83D), modifier = Modifier.size(19.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("$xp XP", fontWeight = FontWeight.Bold, color = Ink)
-                        }
-                    }
-                }
-            }
+        LazyColumn(modifier = Modifier.fillMaxSize().padding(pad),
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(15.dp)) {
             when (tab) {
-                "Учиться" -> {
-                    item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it; question = 0; selected = -1; feedback = false; onSaveSettings(it, dailyGoal) }) }
+                "Главная" -> {
                     item {
-                        Surface(color = Card, shape = RoundedCornerShape(28.dp)) {
-                            Box {
-                                Canvas(Modifier.matchParentSize()) {
-                                    drawCircle(Color(0x332E2B83), radius = size.width * 0.48f, center = Offset(size.width * 0.92f, size.height * 0.12f))
-                                    drawCircle(Color(0x222E63C7), radius = size.width * 0.34f, center = Offset(size.width * 0.12f, size.height * 1.05f))
-                                }
-                                Row(Modifier.fillMaxWidth().padding(start = 18.dp, top = 17.dp, end = 12.dp, bottom = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            FlagBadge(course.id, Modifier.size(width = 25.dp, height = 18.dp))
-                                            Spacer(Modifier.width(8.dp))
-                                            Text(course.name.uppercase(), color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
-                                        }
-                                        Text(unit.title, color = Ink, fontSize = 21.sp, fontWeight = FontWeight.Bold, lineHeight = 25.sp)
-                                        Text(course.nativeName + " · " + ui("Уровень A1", "Level A1"), color = Muted, fontSize = 13.sp)
-                                        Spacer(Modifier.height(3.dp))
-                                        LinearProgressIndicator(progress = { (completedLessons.coerceAtMost(10) / 10f).coerceAtLeast(0.04f) }, modifier = Modifier.fillMaxWidth().height(9.dp).clip(CircleShape), color = Blue, trackColor = Line)
-                                        Text("${(completedLessons.coerceAtMost(10) * 10 + 4)}%", color = Ink, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                                    }
-                                    BearMascot(Modifier.size(116.dp), emotion = bearEmotion)
-                                }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Star, null, tint = Blue, modifier = Modifier.size(27.dp))
+                            Spacer(Modifier.width(9.dp))
+                            Text("Lingo", fontSize = 25.sp, color = Ink, fontWeight = FontWeight.ExtraBold, modifier = Modifier.weight(1f))
+                            IconButton(onClick = { tab = "Профиль" }) { Icon(Icons.Default.Settings, ui("Настройки", "Settings"), tint = Muted) }
+                        }
+                    }
+                    item {
+                        Box(Modifier.fillMaxWidth().height(248.dp)) {
+                            BearMascot(Modifier.align(Alignment.BottomStart).size(238.dp), emotion = bearEmotion)
+                            Surface(color = CardRaised, shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp, bottomEnd = 25.dp),
+                                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 3.dp, bottom = 38.dp).widthIn(max = 148.dp)) {
+                                Text(ui("Опять учиться? Ну ладно…", "Back to learning? Fine…"), Modifier.padding(horizontal = 15.dp, vertical = 17.dp), color = Ink, fontSize = 14.sp, lineHeight = 19.sp)
                             }
                         }
                     }
                     item {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(ui("Твой путь", "Your path"), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Ink, modifier = Modifier.weight(1f))
-                            Text(ui("Этапы", "Stages"), color = Muted, fontSize = 12.sp)
+                        Surface(color = Card, shape = RoundedCornerShape(25.dp), modifier = Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(horizontal = 17.dp, vertical = 15.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    FlagBadge(course.id, Modifier.size(43.dp))
+                                    Spacer(Modifier.width(12.dp))
+                                    Column(Modifier.weight(1f)) {
+                                        Text(course.name, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                        Text(ui("Уровень: A1", "Level: A1"), color = Muted, fontSize = 14.sp)
+                                    }
+                                    Text("42%", color = Ink, fontWeight = FontWeight.SemiBold)
+                                }
+                                LinearProgressIndicator(progress = { 0.42f }, modifier = Modifier.fillMaxWidth().height(10.dp).clip(CircleShape), color = Blue, trackColor = Line)
+                            }
                         }
                     }
                     item {
-                        StageCard(stage, onStart = { lesson = true; skipTest = false }, onSkip = { lesson = true; skipTest = true })
+                        Button(onClick = { lesson = true; skipTest = false },
+                            modifier = Modifier.fillMaxWidth().height(58.dp).background(Brush.horizontalGradient(listOf(Color(0xFF8E6BFF), Color(0xFFB17CFF))), RoundedCornerShape(20.dp)),
+                            shape = RoundedCornerShape(20.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)) {
+                            Text(ui("Продолжить обучение  →", "Continue learning  →"), color = Color(0xFF15102F), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        }
                     }
+                }
+                "Прогресс" -> {
+                    item {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = { tab = "Главная" }) { Icon(Icons.Default.ArrowBack, null, tint = Muted) }
+                            Column(Modifier.weight(1f)) {
+                                Text(ui("Курс: " + course.name, "Course: " + course.name), color = Ink, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                                Text(ui("Твой путь обучения", "Your learning path"), color = Muted, fontSize = 12.sp)
+                            }
+                            Icon(Icons.Default.EmojiEvents, null, tint = Gold, modifier = Modifier.size(27.dp))
+                        }
+                    }
+                    item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it; question = 0; selected = -1; feedback = false; onSaveSettings(it, dailyGoal) }) }
+                    item { StageCard(stage, onStart = { lesson = true; skipTest = false }, onSkip = { lesson = true; skipTest = true }) }
+                    item { Text(ui("Материалы курса", "Course materials"), color = Ink, fontWeight = FontWeight.Bold, fontSize = 18.sp) }
                     item { DialogueCard(course = course) }
                     item { ReadingCard(reading = unit.reading) }
                     items(CourseCatalog.grammar(course.id).size) { index -> GrammarCard(point = CourseCatalog.grammar(course.id)[index]) }
                     CourseCatalog.writing(course.id)?.let { task -> item { WritingCard(task = task) } }
                     item {
-                        Text(ui("Ежедневная цель", "Daily goal"), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Ink)
                         Surface(color = Card, shape = RoundedCornerShape(20.dp)) {
                             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.CheckCircle, null, tint = Green)
-                                    Spacer(Modifier.width(8.dp))
-                                    Text(ui("Занимайся $dailyGoal минут", "Study for $dailyGoal minutes"), fontWeight = FontWeight.SemiBold, color = Ink, modifier = Modifier.weight(1f))
-                                    Text(if (AppLanguage.isEnglish) "0 / $dailyGoal min" else "0 / $dailyGoal мин", color = Muted, fontSize = 12.sp)
-                                }
-                                LinearProgressIndicator(progress = { 0.2f }, modifier = Modifier.fillMaxWidth().height(7.dp), color = Green, trackColor = Line)
+                                Text(ui("Ежедневная цель", "Daily goal"), color = Ink, fontWeight = FontWeight.Bold)
+                                Text(if (AppLanguage.isEnglish) "$dailyGoal minutes" else "$dailyGoal минут", color = Muted)
+                                LinearProgressIndicator(progress = { 0.2f }, modifier = Modifier.fillMaxWidth().height(7.dp), color = Blue, trackColor = Line)
                             }
                         }
                     }
                 }
                 "Квесты" -> {
-                    item { QuestCard(ui("Первый контакт", "First steps"), ui("Пройди один урок сегодня", "Complete one lesson today"), "0 / 1", Icons.Default.ChatBubbleOutline) }
-                    item { QuestCard(ui("Разминка для памяти", "Memory warm-up"), ui("Повтори 5 знакомых слов", "Review 5 familiar words"), "0 / 5", Icons.Default.Psychology) }
-                    item { QuestCard(ui("Не сбавляй темп", "Keep it going"), ui("Заработай 30 XP", "Earn 30 XP"), "$xp / 30 XP", Icons.Default.Bolt) }
-                    item { BearSpeech(ui("У тебя три квеста. Даже я столько дел одновременно не планировал.", "Three quests. Even I would not plan that many things at once.")) }
-                }
-                "Словарь" -> {
-                    item { Text(ui("Новые слова появятся здесь после уроков.", "New words will appear here after your lessons."), color = Muted, fontSize = 15.sp) }
-                                        item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it }) }
-                    items(unit.vocabulary.size) { index -> val word = unit.vocabulary[index]; WordCard(word.term, word.meaning, word.note) }
+                    item {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Flag, null, tint = Blue, modifier = Modifier.size(24.dp))
+                            Spacer(Modifier.width(10.dp))
+                            Text(ui("Квесты", "Quests"), color = Ink, fontWeight = FontWeight.Bold, fontSize = 22.sp)
+                        }
+                    }
+                    item {
+                        Surface(color = CardRaised, shape = RoundedCornerShape(23.dp), modifier = Modifier.fillMaxWidth()) {
+                            Row(Modifier.padding(17.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Text(ui("Серия:", "Streak:"), color = Ink, fontSize = 15.sp)
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("$streak " + ui("дня", "days"), color = Ink, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold)
+                                        Spacer(Modifier.width(7.dp))
+                                        Text("🔥", fontSize = 25.sp)
+                                    }
+                                    Text(ui("Продолжай заниматься, чтобы не потерять серию!", "Keep learning to maintain your streak!"), color = Muted, fontSize = 12.sp)
+                                }
+                                Text("🔥", fontSize = 58.sp)
+                            }
+                        }
+                    }
+                    item { Text(ui("Активные квесты", "Active quests"), color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold) }
+                    item { QuestCard(ui("Выучи 20 новых слов", "Learn 20 new words"), ui("12 / 20 изучено", "12 / 20 learned"), "12 / 20", Icons.Default.Star) }
+                    item { QuestCard(ui("Пройди 3 аудирования", "Complete 3 listening tasks"), ui("1 / 3 выполнено", "1 / 3 completed"), "1 / 3", Icons.Default.Headphones) }
+                    item { QuestCard(ui("Заработай 50 XP", "Earn 50 XP"), "$xp / 50 XP", "$xp / 50", Icons.Default.Bolt) }
                 }
                 "Магазин" -> {
-                    item { StoreHeader(gems = 120) }
                     item {
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            StoreItemCard(ui("Звёздная рамка", "Star frame"), ui("Оформление профиля", "Profile decoration"), "80", "✦", Modifier.weight(1f))
-                            StoreItemCard(ui("Ночная тема", "Night theme"), ui("Тёмно-фиолетовый фон", "Dark profile theme"), "100", "☾", Modifier.weight(1f))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = { tab = "Главная" }) { Icon(Icons.Default.ArrowBack, null, tint = Muted) }
+                            Text(ui("Магазин", "Shop"), color = Ink, fontSize = 22.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                            Icon(Icons.Default.Star, null, tint = Gold)
+                            Spacer(Modifier.width(5.dp))
+                            Text("120", color = Ink, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    item {
+                        Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Card), horizontalArrangement = Arrangement.SpaceEvenly) {
+                            listOf(ui("Аксессуары", "Accessories"), ui("Эмоции", "Emotions"), ui("Темы", "Themes")).forEachIndexed { index, label ->
+                                Column(Modifier.weight(1f).clickable { storeCategory = index }.padding(vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(label, color = if (storeCategory == index) Ink else Muted, fontSize = 11.sp, fontWeight = if (storeCategory == index) FontWeight.Bold else FontWeight.Normal)
+                                    if (storeCategory == index) Box(Modifier.padding(top = 6.dp).width(54.dp).height(3.dp).clip(CircleShape).background(Blue))
+                                }
+                            }
                         }
                     }
                     item {
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            StoreItemCard(ui("Золотая корона", "Golden crown"), ui("Аксессуар маскота", "Mascot accessory"), "150", "♛", Modifier.weight(1f))
-                            StoreItemCard(ui("Восторг", "Excited"), ui("Новая эмоция медведя", "New bear emotion"), "60", "★", Modifier.weight(1f))
+                            StoreItemCard(ui("Наушники", "Headphones"), ui("Аксессуар", "Accessory"), "300", "♫", Modifier.weight(1f))
+                            StoreItemCard(ui("Очки", "Glasses"), ui("Аксессуар", "Accessory"), "300", "◎", Modifier.weight(1f))
                         }
                     }
-                    item { BearSpeech(ui("Собирай награды за занятия. Витрина пока пополняется.", "Earn rewards by studying. More items are coming soon.")) }
+                    item {
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            StoreItemCard(ui("Шарф", "Scarf"), ui("Аксессуар", "Accessory"), "300", "▤", Modifier.weight(1f))
+                            StoreItemCard(ui("Кепка", "Cap"), ui("Аксессуар", "Accessory"), "300", "◒", Modifier.weight(1f))
+                        }
+                    }
                 }
                 else -> {
+                    item {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = { tab = "Главная" }) { Icon(Icons.Default.ArrowBack, null, tint = Muted) }
+                            Text(ui("Профиль и настройки", "Profile & settings"), color = Ink, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        }
+                    }
                     item { AppLanguageSettingsCard(expanded = appLanguageMenuOpen, onExpandedChange = { appLanguageMenuOpen = it }, onSelect = { AppLanguage.changePreference(it); onSaveAppLanguage(it); appLanguageMenuOpen = false }) }
-                    item { BearSpeech(ui("Твои языки, страны и главы курсов. Выбирай, куда двигаться дальше.", "Your languages, countries, and course chapters. Choose where to go next.")) }
                     item { Text(ui("Мои курсы", "My courses"), color = Ink, fontWeight = FontWeight.Bold, fontSize = 19.sp) }
                     item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it; onSaveSettings(it, dailyGoal) }) }
                     items(CourseCatalog.courses.size) { index ->
                         val item = CourseCatalog.courses[index]
-                        Surface(color = Card, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth().clickable { courseId = item.id; tab = "Учиться"; onSaveSettings(item.id, dailyGoal) }) {
+                        Surface(color = Card, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth().clickable { courseId = item.id; tab = "Главная"; onSaveSettings(item.id, dailyGoal) }) {
                             Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                                 FlagBadge(item.id, Modifier.size(width = 42.dp, height = 28.dp))
                                 Spacer(Modifier.width(12.dp))
@@ -287,24 +317,10 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                             }
                         }
                     }
-                    item { Text(ui("Главы · ", "Chapters · ") + course.name, color = Ink, fontWeight = FontWeight.Bold, fontSize = 18.sp) }
-                    items(course.units.size) { index ->
-                        val chapter = course.units[index]
-                        Surface(color = Card, shape = RoundedCornerShape(14.dp)) {
-                            Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text(ui("ГЛАВА", "CHAPTER") + " ${index + 1}", color = Blue, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                Spacer(Modifier.width(10.dp))
-                                Column(Modifier.weight(1f)) {
-                                    Text(chapter.title, color = Ink, fontWeight = FontWeight.SemiBold)
-                                    Text(chapter.goal, color = Muted, fontSize = 11.sp)
-                                }
-                                Icon(Icons.Default.LockOpen, null, tint = Green)
-                            }
-                        }
-                    }
-                    item { StatCard(ui("Ежедневная цель", "Daily goal"), if (AppLanguage.isEnglish) "$dailyGoal minutes" else "$dailyGoal минут") }
+                    item { Text(ui("Словарь", "Vocabulary"), color = Ink, fontWeight = FontWeight.Bold, fontSize = 19.sp) }
+                    items(unit.vocabulary.size) { index -> val word = unit.vocabulary[index]; WordCard(word.term, word.meaning, word.note) }
                     item { StatCard(ui("Всего опыта", "Total XP"), "$xp XP") }
-                    item { StatCard(ui("Серия занятий", "Streak"), if (AppLanguage.isEnglish) "$streak days" else "$streak дней") }
+                    item { StatCard(ui("Серия занятий", "Streak"), "$streak") }
                     item { StatCard(ui("Открытый этап", "Current stage"), "$stage") }
                 }
             }
