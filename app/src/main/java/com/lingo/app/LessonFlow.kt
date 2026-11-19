@@ -245,7 +245,7 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                                     border = androidx.compose.foundation.BorderStroke(if (choice == option) 2.dp else 1.dp, if (choice == option) Blue else Line),
                                     colors = ButtonDefaults.outlinedButtonColors(containerColor = if (choice == option) CardRaised else Card)) {
                                     Text(option, color = Ink, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Start, fontSize = 16.sp)
-                                    if (choice == option) Icon(Icons.Default.CheckCircle, null, tint = Blue)
+                                    if (choice == option) Icon(Icons.Default.Check, null, tint = Blue)
                                 }
                             }
                         }
