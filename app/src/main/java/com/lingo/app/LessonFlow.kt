@@ -183,6 +183,7 @@ internal fun OnboardingScreen(
     var courseId by remember { mutableStateOf(initialCourse) }
     var goal by remember { mutableIntStateOf(10) }
     var level by remember { mutableStateOf("beginner") }
+    var reason by remember { mutableStateOf("Для общения") }
     val selected = CourseCatalog.find(courseId)
     Column(Modifier.fillMaxSize().background(Pale).padding(24.dp), verticalArrangement = Arrangement.Center) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -215,9 +216,9 @@ internal fun OnboardingScreen(
             }
             1 -> {
                 Text("Зачем тебе язык?", fontSize = 25.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
-                listOf("Для путешествий", "Для общения", "Для учёбы", "Для себя и интереса").forEach { reason ->
-                    Surface(color = Color.White, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth().padding(top = 9.dp).clickable { level = reason }) {
-                        Text(reason, Modifier.padding(16.dp), color = Ink, fontWeight = FontWeight.SemiBold)
+                listOf("Для путешествий", "Для общения", "Для учёбы", "Для себя и интереса").forEach { choice ->
+                    Surface(color = if (reason == choice) Color(0xFFE9EDFF) else Color.White, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth().padding(top = 9.dp).clickable { reason = choice }) {
+                        Text(choice, Modifier.padding(16.dp), color = Ink, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
