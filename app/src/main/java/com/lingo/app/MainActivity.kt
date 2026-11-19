@@ -26,6 +26,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.unit.IntOffset
@@ -290,7 +291,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
 
 
 @Composable
-private fun FlagBadge(id: String, modifier: Modifier = Modifier) {
+internal fun FlagBadge(id: String, modifier: Modifier = Modifier) {
     Canvas(modifier.clip(RoundedCornerShape(4.dp))) {
         val w = size.width
         val h = size.height
