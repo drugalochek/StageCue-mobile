@@ -25,6 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.ImageBitmap
@@ -591,7 +592,7 @@ private fun StageCard(stage: Int, onStart: () -> Unit, onSkip: () -> Unit) {
                     }
                 }
             }
-            Button(onClick = onStart, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(17.dp)) {
+            Button(onClick = onStart, modifier = Modifier.fillMaxWidth().height(52.dp).background(Brush.horizontalGradient(listOf(Color(0xFF8E6BFF), Color(0xFFB17CFF))), RoundedCornerShape(17.dp)), shape = RoundedCornerShape(17.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)) {
                 Text(ui("Продолжить обучение", "Continue learning") + "  →", fontWeight = FontWeight.Bold)
             }
             TextButton(onClick = onSkip, modifier = Modifier.fillMaxWidth()) {
