@@ -368,6 +368,33 @@ internal fun FlagBadge(id: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
+private fun AppLanguageSettingsCard(expanded: Boolean, onExpandedChange: (Boolean) -> Unit, onSelect: (String) -> Unit) {
+    val current = when (AppLanguage.preference) {
+        "ru" -> ui("Русский", "Russian")
+        "en" -> "English"
+        else -> ui("Как на телефоне", "Use phone language")
+    }
+    Surface(color = Card, shape = RoundedCornerShape(18.dp)) {
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+            Text(ui("ЯЗЫК ПРИЛОЖЕНИЯ", "APP LANGUAGE"), color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            Text(ui("Язык интерфейса", "Interface language"), color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+            Text(ui("Не влияет на язык, который ты изучаешь.", "This does not change the language you are learning."), color = Muted, fontSize = 12.sp)
+            Box {
+                OutlinedButton(onClick = { onExpandedChange(true) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
+                    Text(current, modifier = Modifier.weight(1f), textAlign = TextAlign.Start)
+                    Icon(Icons.Default.ExpandMore, contentDescription = null)
+                }
+                DropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }) {
+                    DropdownMenuItem(text = { Text(ui("Как на телефоне", "Use phone language")) }, onClick = { onSelect("auto") })
+                    DropdownMenuItem(text = { Text(ui("Русский", "Russian")) }, onClick = { onSelect("ru") })
+                    DropdownMenuItem(text = { Text("English") }, onClick = { onSelect("en") })
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun CoursePicker(course: LanguageCourse, expanded: Boolean, onExpandedChange: (Boolean) -> Unit, onSelect: (String) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         OutlinedButton(onClick = { onExpandedChange(true) }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp)) {
