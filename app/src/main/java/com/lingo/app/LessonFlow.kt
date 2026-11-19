@@ -103,7 +103,7 @@ internal fun LessonFlow(
         checked = true
     }
     Dialog(onDismissRequest = onExit) {
-        Surface(color = Color.White, shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth()) {
+        Surface(color = Card, shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.fillMaxWidth().heightIn(max = 690.dp).verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 if (finished) {
                     Text("Урок завершён", fontSize = 25.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
@@ -131,7 +131,7 @@ internal fun LessonFlow(
                             OutlinedButton(
                                 onClick = { if (!checked) chosen = option },
                                 modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.outlinedButtonColors(containerColor = if (checked && option == task.answer) Color(0xFFE8F7EF) else if (active) Color(0xFFE9EDFF) else Color.White)
+                                colors = ButtonDefaults.outlinedButtonColors(containerColor = if (checked && option == task.answer) Color(0xFFE8F7EF) else if (active) CardRaised else Color.White)
                             ) { Text(option, color = Ink, textAlign = TextAlign.Start, modifier = Modifier.fillMaxWidth()) }
                         }
                         "speak" -> {
