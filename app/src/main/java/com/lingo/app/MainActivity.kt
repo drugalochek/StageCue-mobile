@@ -289,6 +289,70 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
 
 
 @Composable
+private fun FlagBadge(id: String, modifier: Modifier = Modifier) {
+    Canvas(modifier.clip(RoundedCornerShape(4.dp))) {
+        val w = size.width
+        val h = size.height
+        fun rect(color: Color, left: Float, top: Float, width: Float, height: Float) {
+            drawRect(color, topLeft = Offset(left, top), size = androidx.compose.ui.geometry.Size(width, height))
+        }
+        when (id) {
+            "en" -> {
+                val stripe = h / 13f
+                repeat(13) { i -> rect(if (i % 2 == 0) Color(0xFFB22234) else Color.White, 0f, i * stripe, w, stripe + 0.5f) }
+                rect(Color(0xFF3C3B6E), 0f, 0f, w * 0.42f, h * 7f / 13f)
+                for (row in 0..4) for (col in 0..4) {
+                    drawCircle(Color.White, radius = (h * 0.025f).coerceAtLeast(0.7f),
+                        center = Offset(w * (0.035f + col * 0.085f), h * (0.045f + row * 0.085f)))
+                }
+            }
+            "ru" -> {
+                rect(Color.White, 0f, 0f, w, h / 3f)
+                rect(Color(0xFF0039A6), 0f, h / 3f, w, h / 3f)
+                rect(Color(0xFFD52B1E), 0f, h * 2f / 3f, w, h / 3f)
+            }
+            "es" -> {
+                rect(Color(0xFFAA151B), 0f, 0f, w, h * 0.25f)
+                rect(Color(0xFFF1BF00), 0f, h * 0.25f, w, h * 0.5f)
+                rect(Color(0xFFAA151B), 0f, h * 0.75f, w, h * 0.25f)
+            }
+            "de" -> {
+                rect(Color(0xFF000000), 0f, 0f, w, h / 3f)
+                rect(Color(0xFFDD0000), 0f, h / 3f, w, h / 3f)
+                rect(Color(0xFFFFCE00), 0f, h * 2f / 3f, w, h / 3f)
+            }
+            "fr" -> {
+                rect(Color(0xFF0055A4), 0f, 0f, w / 3f, h)
+                rect(Color.White, w / 3f, 0f, w / 3f, h)
+                rect(Color(0xFFEF4135), w * 2f / 3f, 0f, w / 3f, h)
+            }
+            "it" -> {
+                rect(Color(0xFF009246), 0f, 0f, w / 3f, h)
+                rect(Color.White, w / 3f, 0f, w / 3f, h)
+                rect(Color(0xFFCE2B37), w * 2f / 3f, 0f, w / 3f, h)
+            }
+            "pt" -> {
+                rect(Color(0xFF006600), 0f, 0f, w * 0.4f, h)
+                rect(Color(0xFFFF0000), w * 0.4f, 0f, w * 0.6f, h)
+                drawCircle(Color(0xFFFFD700), radius = h * 0.16f, center = Offset(w * 0.4f, h * 0.5f))
+            }
+            "tr" -> {
+                rect(Color(0xFFE30A17), 0f, 0f, w, h)
+                drawCircle(Color.White, radius = h * 0.29f, center = Offset(w * 0.43f, h * 0.5f))
+                drawCircle(Color(0xFFE30A17), radius = h * 0.23f, center = Offset(w * 0.49f, h * 0.5f))
+                drawCircle(Color.White, radius = h * 0.075f, center = Offset(w * 0.69f, h * 0.5f))
+            }
+            "ja" -> {
+                rect(Color.White, 0f, 0f, w, h)
+                drawCircle(Color(0xFFBC002D), radius = h * 0.29f, center = Offset(w * 0.5f, h * 0.5f))
+            }
+            else -> rect(Color.LightGray, 0f, 0f, w, h)
+        }
+        drawRoundRect(Color(0x55777777), style = Stroke(width = 1.dp.toPx()), cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx()))
+    }
+}
+
+@Composable
 private fun CoursePicker(course: LanguageCourse, expanded: Boolean, onExpandedChange: (Boolean) -> Unit, onSelect: (String) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         OutlinedButton(onClick = { onExpandedChange(true) }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp)) {
