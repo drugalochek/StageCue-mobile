@@ -105,6 +105,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
     LaunchedEffect(initialAppLanguage) { AppLanguage.changePreference(initialAppLanguage) }
     val course = CourseCatalog.find(courseId)
     val unit = course.units[(stage - 1).coerceIn(0, course.units.lastIndex)]
+    val courseProgress = stage.coerceAtMost(course.units.size).toFloat() / course.units.size.coerceAtLeast(1)
     val questions = unit.quiz
     val q = questions[question.coerceIn(0, questions.lastIndex)]
     fun finishTest() {
@@ -189,9 +190,9 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                                         Text(course.name, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                                         Text(ui("Уровень: A1", "Level: A1"), color = Muted, fontSize = 14.sp)
                                     }
-                                    Text("42%", color = Ink, fontWeight = FontWeight.SemiBold)
+                                    Text("${(courseProgress * 100).toInt()}%", color = Ink, fontWeight = FontWeight.SemiBold)
                                 }
-                                LinearProgressIndicator(progress = { 0.42f }, modifier = Modifier.fillMaxWidth().height(10.dp).clip(CircleShape), color = Blue, trackColor = Line)
+                                LinearProgressIndicator(progress = { courseProgress }, modifier = Modifier.fillMaxWidth().height(10.dp).clip(CircleShape), color = Blue, trackColor = Line)
                             }
                         }
                     }
@@ -215,7 +216,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                         }
                     }
                     item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it; question = 0; selected = -1; feedback = false; onSaveSettings(it, dailyGoal) }) }
-                    item { StageCard(stage, onStart = { lesson = true; skipTest = false }, onSkip = { lesson = true; skipTest = true }) }
+                    item { StageCard(stage, unit.title, unit.goal, onStart = { lesson = true; skipTest = false }, onSkip = { lesson = true; skipTest = true }) }
                     item { Text(ui("Материалы курса", "Course materials"), color = Ink, fontWeight = FontWeight.Bold, fontSize = 18.sp) }
                     item { DialogueCard(course = course) }
                     item { ReadingCard(reading = unit.reading) }
@@ -559,7 +560,7 @@ private fun WritingCard(task: WritingTask) {
 }
 
 @Composable
-private fun StageCard(stage: Int, onStart: () -> Unit, onSkip: () -> Unit) {
+private fun StageCard(stage: Int, currentTitle: String, currentGoal: String, onStart: () -> Unit, onSkip: () -> Unit) {
     Surface(color = Card, shape = RoundedCornerShape(24.dp)) {
         Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(15.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -569,8 +570,8 @@ private fun StageCard(stage: Int, onStart: () -> Unit, onSkip: () -> Unit) {
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     Text(ui("ТЕКУЩИЙ ЭТАП", "CURRENT STAGE") + "  $stage", color = Blue, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.3.sp)
-                    Text(ui("Первые фразы", "First phrases"), color = Ink, fontSize = 19.sp, fontWeight = FontWeight.Bold)
-                    Text(ui("Освой базу и переходи дальше", "Learn the basics and move on"), color = Muted, fontSize = 12.sp)
+                    Text(currentTitle, color = Ink, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                    Text(currentGoal, color = Muted, fontSize = 12.sp)
                 }
                 Icon(Icons.Default.EmojiEvents, null, tint = Gold, modifier = Modifier.size(25.dp))
             }
@@ -597,14 +598,14 @@ private fun StageCard(stage: Int, onStart: () -> Unit, onSkip: () -> Unit) {
                     Surface(color = CardRaised, shape = RoundedCornerShape(15.dp), modifier = Modifier.fillMaxWidth()) {
                         Row(Modifier.padding(horizontal = 13.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                                Text(ui("Первые фразы", "First phrases"), color = Ink, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                Text(currentTitle, color = Ink, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                 Text(ui("Текущий урок", "Current lesson"), color = Blue, fontSize = 11.sp)
                             }
                             Icon(Icons.Default.Star, null, tint = Blue)
                         }
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(ui("Повседневная лексика", "Everyday vocabulary"), color = Muted, fontSize = 13.sp)
+                        Text(ui("Следующий урок", "Next lesson"), color = Muted, fontSize = 13.sp)
                         Text(ui("Следующий этап", "Next stage"), color = Muted.copy(alpha = 0.75f), fontSize = 10.sp)
                     }
                 }
