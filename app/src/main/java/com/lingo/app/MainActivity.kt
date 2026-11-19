@@ -104,7 +104,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
     var appLanguageMenuOpen by remember { mutableStateOf(false) }
     LaunchedEffect(initialAppLanguage) { AppLanguage.changePreference(initialAppLanguage) }
     val course = CourseCatalog.find(courseId)
-    val unit = course.firstUnit
+    val unit = course.units[(stage - 1).coerceIn(0, course.units.lastIndex)]
     val questions = unit.quiz
     val q = questions[question.coerceIn(0, questions.lastIndex)]
     fun finishTest() {
@@ -330,6 +330,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
     if (lesson) {
         LessonFlow(
             course = course,
+            unit = unit,
             placement = skipTest,
             onExit = { lesson = false; skipTest = false },
             onComplete = { score, total ->
