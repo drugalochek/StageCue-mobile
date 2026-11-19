@@ -137,7 +137,11 @@ private fun StageCueScreen(tracks: MutableList<CueTrack>, player: ExoPlayer, sav
     }
     fun play(track: CueTrack) {
         val queue = tracks.filter { it.slot in 1..40 }.sortedBy { it.slot }
-        val list = if (queue.isEmpty()) listOf(track) else queue
+        val list = when {
+            queue.isEmpty() -> listOf(track)
+            queue.any { it.uri == track.uri } -> queue
+            else -> listOf(track) + queue
+        }
         val index = list.indexOfFirst { it.uri == track.uri }.coerceAtLeast(0)
         player.setMediaItems(list.map { MediaItem.fromUri(Uri.parse(it.uri)) }, index, 0L)
         current = track.uri; player.prepare(); player.play()
@@ -271,34 +275,81 @@ private fun StageCueScreen(tracks: MutableList<CueTrack>, player: ExoPlayer, sav
             }
             "Плеер" -> {
                 val cue = tracks.firstOrNull { it.uri == current }
-                Column(Modifier.weight(1f).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center) {
-                    TrackArtwork(cue?.uri, Modifier.size(210.dp))
-                    Spacer(Modifier.height(22.dp))
-                    Text("NOW PLAYING", color = Blue, fontSize = 10.sp, letterSpacing = 2.sp)
-                    Spacer(Modifier.height(8.dp))
-                    Text(cue?.name ?: "Ничего не выбрано", fontSize = 20.sp, fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center, maxLines = 2)
+                val stageQueue = tracks.filter { it.slot in 1..40 }.sortedBy { it.slot }
+                    .ifEmpty { tracks.sortedBy { it.slot } }
+                Column(Modifier.weight(1f).fillMaxWidth()) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("РЕЖИМ СЦЕНЫ", color = Blue, fontSize = 10.sp, fontWeight = FontWeight.Bold,
+                                letterSpacing = 1.5.sp)
+                            Text("Управление фонограммами", color = Muted, fontSize = 11.sp)
+                        }
+                        Text("${stageQueue.size} ТРЕКОВ", color = Muted, fontSize = 9.sp)
+                    }
+                    Spacer(Modifier.height(9.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        TrackArtwork(cue?.uri, Modifier.size(76.dp))
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(cue?.name ?: "Ничего не выбрано", color = Txt, fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            Text(if (playing) "СЕЙЧАС ИГРАЕТ" else "ОСТАНОВЛЕНО",
+                                color = if (playing) Blue else Muted, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                            Text("${timeText(pos)} / ${timeText(dur)}", color = Muted, fontSize = 10.sp)
+                        }
+                    }
                     Slider(value = if (dur > 0) pos.toFloat().coerceIn(0f, dur.toFloat()) else 0f,
                         onValueChange = { pos = it.toLong() },
                         onValueChangeFinished = { if (dur > 0) player.seekTo(pos) },
-                        valueRange = 0f..dur.coerceAtLeast(1L).toFloat())
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(timeText(pos), color = Muted, fontSize = 11.sp)
-                        Text(timeText(dur), color = Muted, fontSize = 11.sp)
-                    }
-                    Spacer(Modifier.height(14.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                        IconButton(onClick = { if (player.hasPreviousMediaItem()) player.seekToPreviousMediaItem() }) {
-                            Icon(Icons.Default.SkipPrevious, null, tint = Txt, modifier = Modifier.size(34.dp))
+                        valueRange = 0f..dur.coerceAtLeast(1L).toFloat(),
+                        modifier = Modifier.fillMaxWidth().height(32.dp))
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { if (player.hasPreviousMediaItem()) player.seekToPreviousMediaItem() },
+                            enabled = player.hasPreviousMediaItem(), modifier = Modifier.weight(1f)) {
+                            Icon(Icons.Default.SkipPrevious, null); Text("НАЗАД", fontSize = 10.sp)
                         }
+                        OutlinedButton(onClick = { player.stop(); current = null; playing = false },
+                            modifier = Modifier.weight(0.8f)) { Text("■", fontSize = 15.sp); Text(" СТОП", fontSize = 10.sp) }
                         FilledIconButton(onClick = {
                             if (player.isPlaying) player.pause() else if (player.mediaItemCount > 0) player.play()
-                        }, modifier = Modifier.size(66.dp)) {
-                            Icon(if (playing) Icons.Default.Pause else Icons.Default.PlayArrow, null, modifier = Modifier.size(36.dp))
+                        }, modifier = Modifier.size(52.dp)) {
+                            Icon(if (playing) Icons.Default.Pause else Icons.Default.PlayArrow, null,
+                                modifier = Modifier.size(28.dp))
                         }
-                        IconButton(onClick = { if (player.hasNextMediaItem()) player.seekToNextMediaItem() }) {
-                            Icon(Icons.Default.SkipNext, null, tint = Txt, modifier = Modifier.size(34.dp))
+                        OutlinedButton(onClick = { if (player.hasNextMediaItem()) player.seekToNextMediaItem() },
+                            enabled = player.hasNextMediaItem(), modifier = Modifier.weight(1f)) {
+                            Text("ДАЛЕЕ", fontSize = 10.sp); Icon(Icons.Default.SkipNext, null)
+                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("ОЧЕРЕДЬ ФОНОГРАММ", color = Txt, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.weight(1f))
+                        Text("НАЖМИ НА ТРЕК ДЛЯ ЗАПУСКА", color = Muted, fontSize = 8.sp)
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    if (stageQueue.isEmpty()) EmptyCueState()
+                    else LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp),
+                        contentPadding = PaddingValues(bottom = 6.dp)) {
+                        items(stageQueue, key = { "stage-" + it.uri }) { item ->
+                            val active = current == item.uri
+                            Surface(color = if (active) Panel2 else Panel,
+                                border = BorderStroke(if (active) 1.5.dp else 1.dp, if (active) Blue else Line),
+                                shape = RoundedCornerShape(9.dp),
+                                modifier = Modifier.fillMaxWidth().clickable { play(item) }) {
+                                Row(Modifier.padding(horizontal = 9.dp, vertical = 7.dp),
+                                    verticalAlignment = Alignment.CenterVertically) {
+                                    Text(item.slot.toString().padStart(2, '0'), color = Blue,
+                                        fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(30.dp))
+                                    TrackArtwork(item.uri, Modifier.size(34.dp))
+                                    Spacer(Modifier.width(9.dp))
+                                    Text(item.name, color = Txt, fontSize = 11.sp, maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                                    if (active) Text("LIVE", color = Blue, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                    else Icon(Icons.Default.PlayArrow, null, tint = Muted, modifier = Modifier.size(18.dp))
+                                }
+                            }
                         }
                     }
                 }
