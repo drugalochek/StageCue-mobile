@@ -363,26 +363,3 @@ internal fun OnboardingScreen(
         }
     }
 }
-
-@Composable
-internal fun FlagBadge(code: String, modifier: Modifier = Modifier) {
-    Canvas(modifier.clip(RoundedCornerShape(5.dp))) {
-        val w = size.width
-        val h = size.height
-        fun rect(color: Color, x: Float, y: Float, rw: Float, rh: Float) = drawRect(color, Offset(x, y), Size(rw, rh))
-        when (code) {
-            "en" -> {
-                rect(Color(0xFF233B78),0f,0f,w,h); rect(Color.White,0f,h*.40f,w,h*.20f); rect(Color(0xFFC83D50),0f,h*.45f,w,h*.10f)
-                rect(Color.White,w*.43f,0f,w*.14f,h); rect(Color(0xFFC83D50),w*.465f,0f,w*.07f,h)
-            }
-            "es" -> { rect(Color(0xFFAA2638),0f,0f,w,h*.25f); rect(Color(0xFFFFC928),0f,h*.25f,w,h*.5f); rect(Color(0xFFAA2638),0f,h*.75f,w,h*.25f) }
-            "de" -> { rect(Color(0xFF222222),0f,0f,w,h/3); rect(Color(0xFFD43B35),0f,h/3,w,h/3); rect(Color(0xFFFFD34D),0f,h*2/3,w,h/3) }
-            "fr" -> { rect(Color(0xFF294A9B),0f,0f,w/3,h); rect(Color.White,w/3,0f,w/3,h); rect(Color(0xFFE34C55),w*2/3,0f,w/3,h) }
-            "it" -> { rect(Color(0xFF26965A),0f,0f,w/3,h); rect(Color.White,w/3,0f,w/3,h); rect(Color(0xFFE34C55),w*2/3,0f,w/3,h) }
-            "pt" -> { rect(Color(0xFF16824B),0f,0f,w*.4f,h); rect(Color(0xFFD53B43),w*.4f,0f,w*.6f,h) }
-            "tr" -> { rect(Color(0xFFD83A48),0f,0f,w,h); drawCircle(Color.White,h*.25f,Offset(w*.43f,h*.5f)); drawCircle(Color(0xFFD83A48),h*.20f,Offset(w*.47f,h*.47f)); drawCircle(Color.White,h*.08f,Offset(w*.69f,h*.5f)) }
-            "ja" -> { rect(Color.White,0f,0f,w,h); drawCircle(Color(0xFFBC3344),h*.27f,Offset(w*.5f,h*.5f)) }
-        }
-        drawRoundRect(Color(0x22000000), style = Stroke(width = 1.dp.toPx()), cornerRadius = androidx.compose.ui.geometry.CornerRadius(5.dp.toPx()))
-    }
-}
