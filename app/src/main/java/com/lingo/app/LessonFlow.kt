@@ -235,7 +235,7 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                             Button(onClick = {
                                 val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                                     putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                                    putExtra(RecognizerIntent.EXTRA_LANGUAGE, course.id)
+                                    putExtra(RecognizerIntent.EXTRA_LANGUAGE, when (course.id) { "en" -> "en-US"; "ru" -> "ru-RU"; "es" -> "es-ES"; "de" -> "de-DE"; "fr" -> "fr-FR"; "it" -> "it-IT"; "pt" -> "pt-PT"; "tr" -> "tr-TR"; "ja" -> "ja-JP"; else -> course.id })
                                     putExtra(RecognizerIntent.EXTRA_PROMPT, "Произнеси фразу на " + course.nativeName)
                                 }
                                 runCatching { speech.launch(intent) }
