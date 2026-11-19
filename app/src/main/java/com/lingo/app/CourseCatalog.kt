@@ -31,31 +31,7 @@ data class LanguageCourse(
  */
 object CourseCatalog {
     val courses: List<LanguageCourse> = listOf(
-        LanguageCourse("en", "Английский (США)", "American English", "🇺🇸", "Живая американская разговорная речь, естественные фразы и повседневные ситуации", listOf(
-            LessonUnit("Знакомство без шаблонов", "Представиться, задать вопрос и поддержать короткий разговор",
-                listOf(
-                    DialogueLine("Mia", "Hey! I don't think we've met. I'm Mia.", "Привет! Кажется, мы ещё не знакомы. Я Мия."),
-                    DialogueLine("Leo", "Nice to meet you. I'm Leo. Did you just move to the neighborhood?", "Приятно познакомиться. Я Лео. Ты здесь недавно?"),
-                    DialogueLine("Mia", "Yeah, last week. I'm still getting the hang of things around here.", "Да, я переехала на прошлой неделе. Пока ещё осваиваюсь."),
-                    DialogueLine("Leo", "I got you. There's a great coffee shop just around the corner.", "Тогда ты обратилась по адресу. Я знаю хорошее кафе неподалёку.")
-                ),
-                listOf(
-                    VocabEntry("to figure things out", "разобраться, освоиться", "I'm still figuring things out.", "Разговорное выражение, не переводится дословно."),
-                    VocabEntry("nearby", "неподалёку", "There's a café nearby.", "Часто стоит в конце предложения."),
-                    VocabEntry("to move", "переехать", "We moved here in May.", "В контексте жилья означает «переехать»."),
-                    VocabEntry("Nice to meet you", "приятно познакомиться", "Nice to meet you, too.", "Типичный ответ: Nice to meet you, too.")
-                ),
-                ReadingText("A new start", "Sam just moved to Chicago. On Saturday, he stops by a small bookstore near his apartment. The owner recommends a mystery novel. Sam buys it, asks what time the store closes, and says he will come back next week.", "Сэм недавно переехал в Чикаго. В субботу он заходит в небольшой книжный магазин рядом с квартирой. Владелец советует ему детектив. Сэм покупает книгу, спрашивает, во сколько магазин закрывается, и говорит, что вернётся на следующей неделе.",
-                    listOf("Where does Sam go on Saturday?" to "A small bookshop.", "What does the owner recommend?" to "A mystery novel.")),
-                listOf(
-                    QuizItem("What does “I'm still figuring things out” mean?", listOf("Я всё ещё разбираюсь", "Я уже всё забыл", "Я ищу потерянную вещь"), 0, "Это устойчивое разговорное выражение: человек пока осваивается."),
-                    QuizItem("Choose the natural reply: “Nice to meet you.”", listOf("I am agree.", "Nice to meet you, too.", "I have 15 years."), 1, "В ответ обычно говорят “Nice to meet you, too”."),
-                    QuizItem("Complete: “There is a café ___.”", listOf("nearby", "yesterday", "quickly"), 0, "Nearby значит «неподалёку»."),
-                    QuizItem("Which sentence asks about someone's recent move?", listOf("Have you just moved here?", "Do you move yesterday?", "Are you move here?"), 0, "Present Perfect подходит для недавнего события с актуальным результатом."),
-                    QuizItem("What is a mystery novel?", listOf("Кулинарная книга", "Детективный роман", "Путеводитель"), 1, "Mystery novel — роман-загадка или детектив.")
-                )
-            )
-        )),
+        LanguageCourse("en", "Английский (США)", "American English", "🇺🇸", "Пошаговый курс с нуля: от первых слов до простых разговоров", EnglishA1Course.units),
         LanguageCourse("ru", "Русский", "Русский язык", "🇷🇺", "Современная разговорная речь, повседневные фразы и понятная грамматика", listOf(
             LessonUnit("Знакомство и повседневное общение", "Поздороваться, представиться, поддержать разговор и задать естественный вопрос",
                 listOf(
