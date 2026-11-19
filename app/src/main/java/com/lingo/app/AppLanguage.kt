@@ -18,7 +18,7 @@ object AppLanguage {
             else -> systemCode != "ru"
         }
 
-    fun setPreference(value: String) {
+    fun changePreference(value: String) {
         preference = value
     }
 
