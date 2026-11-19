@@ -1,6 +1,8 @@
 package com.stagecue.mobile
 
 import android.content.Intent
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Bundle
 import android.view.KeyEvent as NativeKey
@@ -9,6 +11,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -30,11 +34,18 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,8 +66,9 @@ private val Line = Color(0xFF293442)
 private val Blue = Color(0xFF4D9BFA)
 private val Txt = Color(0xFFF0F4FA)
 private val Muted = Color(0xFF8996A5)
+private val StageFont = FontFamily(Font(R.font.nomor1))
 
-data class CueTrack(val uri: String, val name: String, val slot: Int, val keyCode: Int = 0)
+data class CueTrack(val uri: String, val name: String, val slot: Int, val keyCode: Int = 0, val touchAction: String = "PLAY")
 
 class MainActivity : ComponentActivity() {
     private lateinit var player: ExoPlayer
@@ -70,16 +82,16 @@ class MainActivity : ComponentActivity() {
             for (i in 0 until arr.length()) {
                 val o = arr.getJSONObject(i)
                 tracks.add(CueTrack(o.getString("uri"), o.getString("name"),
-                    o.optInt("slot", 0), o.optInt("keyCode", 0)))
+                    o.optInt("slot", 0), o.optInt("keyCode", 0), o.optString("touchAction", "PLAY")))
             }
         } catch (_: Exception) { }
         setContent {
             MaterialTheme(colorScheme = darkColorScheme(primary = Blue, background = Bg,
-                surface = Panel, onBackground = Txt, onSurface = Txt)) {
+                surface = Panel, onBackground = Txt, onSurface = Txt), typography = Typography(defaultFontFamily = StageFont)) {
                 StageCueScreen(tracks, player) {
                     val arr = JSONArray()
                     tracks.forEach { t -> arr.put(JSONObject().put("uri", t.uri)
-                        .put("name", t.name).put("slot", t.slot).put("keyCode", t.keyCode)) }
+                        .put("name", t.name).put("slot", t.slot).put("keyCode", t.keyCode).put("touchAction", t.touchAction)) }
                     prefs.edit().putString("tracks", arr.toString()).apply()
                 }
             }
@@ -99,6 +111,8 @@ private fun StageCueScreen(tracks: MutableList<CueTrack>, player: ExoPlayer, sav
     var name by remember { mutableStateOf("") }
     var slot by remember { mutableStateOf("") }
     var bind by remember { mutableStateOf("") }
+    var touchAction by remember { mutableStateOf("PLAY") }
+    val haptic = LocalHapticFeedback.current
     var search by remember { mutableStateOf("") }
     var pos by remember { mutableLongStateOf(0L) }
     var dur by remember { mutableLongStateOf(0L) }
@@ -138,17 +152,15 @@ private fun StageCueScreen(tracks: MutableList<CueTrack>, player: ExoPlayer, sav
         save()
     }
 
-    Column(Modifier.fillMaxSize().background(Bg).onPreviewKeyEvent { event ->
+    Column(Modifier.fillMaxSize().background(Bg).statusBarsPadding().navigationBarsPadding().onPreviewKeyEvent { event ->
         if (event.type == KeyEventType.KeyDown && editing == null && tab != "Настройки") {
             val cue = tracks.firstOrNull { it.keyCode != 0 && it.keyCode == event.nativeKeyEvent.keyCode }
             if (cue != null) { play(cue); true } else false
         } else false
     }.padding(horizontal = 16.dp, vertical = 12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(44.dp).background(Brush.linearGradient(listOf(Blue, Color(0xFF12345A))),
-                RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
-                Text("SC", color = Color.White, fontWeight = FontWeight.Black)
-            }
+            Image(painter = painterResource(id = R.mipmap.ic_launcher), contentDescription = "StageCue logo",
+                modifier = Modifier.size(46.dp), contentScale = ContentScale.Fit)
             Spacer(Modifier.width(11.dp))
             Column(Modifier.weight(1f)) {
                 Text("StageCue", fontSize = 22.sp, fontWeight = FontWeight.Bold)
@@ -192,9 +204,11 @@ private fun StageCueScreen(tracks: MutableList<CueTrack>, player: ExoPlayer, sav
                         Surface(color = if (active) Color(0xFF183454) else Panel,
                             shape = RoundedCornerShape(13.dp),
                             border = BorderStroke(if (active) 1.5.dp else 1.dp, if (active) Blue else Line),
-                            modifier = Modifier.height(112.dp).clickable { play(cue) }) {
+                            modifier = Modifier.height(132.dp).combinedClickable(onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); runTouchAction(cue, player, tracks, ::play) }, onLongClick = { haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove); editing = cue; name = cue.name; slot = cue.slot.toString(); bind = ""; touchAction = cue.touchAction }) ) {
                             Column(Modifier.fillMaxSize().padding(10.dp), verticalArrangement = Arrangement.SpaceBetween) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
+                                    TrackArtwork(cue.uri, Modifier.size(38.dp))
+                                    Spacer(Modifier.width(7.dp))
                                     Text(cue.slot.toString().padStart(2, '0'), color = Blue,
                                         fontSize = 18.sp, fontWeight = FontWeight.Black)
                                     Spacer(Modifier.weight(1f))
@@ -202,8 +216,8 @@ private fun StageCueScreen(tracks: MutableList<CueTrack>, player: ExoPlayer, sav
                                 }
                                 Text(cue.name, maxLines = 2, overflow = TextOverflow.Ellipsis,
                                     fontSize = 12.sp, fontWeight = FontWeight.SemiBold, lineHeight = 15.sp)
-                                Text(if (cue.keyCode == 0) "БИНД НЕ ЗАДАН" else keyLabel(cue.keyCode),
-                                    color = Muted, fontSize = 9.sp)
+                                Text("ТАП: ${touchActionLabel(cue.touchAction)} · УДЕРЖАТЬ: НАСТРОИТЬ", color = Muted, fontSize = 8.sp,
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
                         }
                     }
@@ -240,7 +254,7 @@ private fun StageCueScreen(tracks: MutableList<CueTrack>, player: ExoPlayer, sav
                                 }
                                 IconButton(onClick = {
                                     editing = cue; name = cue.name; slot = cue.slot.toString()
-                                    bind = if (cue.keyCode == 0) "" else keyLetter(cue.keyCode)
+                                    bind = if (cue.keyCode == 0) "" else keyLetter(cue.keyCode); touchAction = cue.touchAction
                                 }) { Text("✎", color = Muted) }
                                 IconButton(onClick = {
                                     if (current == cue.uri) { player.stop(); current = null }
@@ -255,8 +269,7 @@ private fun StageCueScreen(tracks: MutableList<CueTrack>, player: ExoPlayer, sav
                 val cue = tracks.firstOrNull { it.uri == current }
                 Column(Modifier.weight(1f).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center) {
-                    Box(Modifier.size(176.dp).background(Panel, RoundedCornerShape(22.dp)),
-                        contentAlignment = Alignment.Center) { Text("♫", color = Blue, fontSize = 70.sp) }
+                    TrackArtwork(cue?.uri, Modifier.size(210.dp))
                     Spacer(Modifier.height(22.dp))
                     Text("NOW PLAYING", color = Blue, fontSize = 10.sp, letterSpacing = 2.sp)
                     Spacer(Modifier.height(8.dp))
@@ -308,7 +321,7 @@ private fun StageCueScreen(tracks: MutableList<CueTrack>, player: ExoPlayer, sav
                                 }
                                 OutlinedButton(onClick = {
                                     editing = cue; name = cue.name; slot = cue.slot.toString()
-                                    bind = if (cue.keyCode == 0) "" else keyLetter(cue.keyCode)
+                                    bind = if (cue.keyCode == 0) "" else keyLetter(cue.keyCode); touchAction = cue.touchAction
                                 }, contentPadding = PaddingValues(horizontal = 9.dp, vertical = 4.dp)) {
                                     Text("Изменить", fontSize = 11.sp)
                                 }
@@ -333,8 +346,10 @@ private fun StageCueScreen(tracks: MutableList<CueTrack>, player: ExoPlayer, sav
             modifier = Modifier.fillMaxWidth().clickable {
                 if (player.isPlaying) player.pause() else if (player.mediaItemCount > 0) player.play()
             }) {
-            Row(Modifier.padding(11.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("♫", color = Blue, fontSize = 22.sp)
+            Column(Modifier.padding(horizontal = 11.dp, vertical = 8.dp)) {
+                LinearProgressIndicator(progress = { if (dur > 0) (pos.toFloat() / dur.toFloat()).coerceIn(0f, 1f) else 0f }, modifier = Modifier.fillMaxWidth().height(3.dp), color = Blue, trackColor = Line)
+                Row(Modifier.padding(top = 7.dp), verticalAlignment = Alignment.CenterVertically) {
+                TrackArtwork(current, Modifier.size(36.dp))
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
                     Text(tracks.firstOrNull { it.uri == current }?.name ?: "StageCue готов",
@@ -342,6 +357,7 @@ private fun StageCueScreen(tracks: MutableList<CueTrack>, player: ExoPlayer, sav
                     Text(if (playing) "Воспроизведение" else "Остановлено", color = Muted, fontSize = 10.sp)
                 }
                 Icon(if (playing) Icons.Default.Pause else Icons.Default.PlayArrow, null, tint = Blue)
+                }
             }
         }
     }
@@ -357,7 +373,11 @@ private fun StageCueScreen(tracks: MutableList<CueTrack>, player: ExoPlayer, sav
                         bind = it.uppercase().filter(Char::isLetterOrDigit).take(1)
                     }, singleLine = true, label = { Text("Клавиша бинда (A–Z, 0–9)") },
                         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters))
-                    Text("Бинды срабатывают при нажатии на физической клавиатуре.", color = Muted, fontSize = 11.sp)
+                    Text("Сенсорное управление: тап выполняет выбранное действие, долгое нажатие открывает настройки пэда. Клавиша необязательна.", color = Muted, fontSize = 11.sp)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Действие по тапу", color = Muted, fontSize = 12.sp, modifier = Modifier.weight(1f))
+                        TextButton(onClick = { touchAction = nextTouchAction(touchAction) }) { Text(touchActionLabel(touchAction)) }
+                    }
                 }
             },
             confirmButton = {
@@ -366,7 +386,7 @@ private fun StageCueScreen(tracks: MutableList<CueTrack>, player: ExoPlayer, sav
                     val newSlot = slot.toIntOrNull()?.takeIf { it in 1..40 } ?: cue.slot
                     val key = if (bind.isBlank()) 0 else NativeKey.keyCodeFromString("KEYCODE_${bind}")
                     if (i >= 0 && name.isNotBlank()) tracks[i] = cue.copy(name = name.trim(),
-                        slot = newSlot, keyCode = if (key == NativeKey.KEYCODE_UNKNOWN) 0 else key)
+                        slot = newSlot, keyCode = if (key == NativeKey.KEYCODE_UNKNOWN) 0 else key, touchAction = touchAction)
                     save(); editing = null
                 }) { Text("Сохранить") }
             },
@@ -394,6 +414,34 @@ private fun InfoPanel(title: String, description: String) {
             Spacer(Modifier.height(5.dp))
             Text(description, color = Muted, fontSize = 11.sp, lineHeight = 16.sp)
         }
+    }
+}
+
+private fun nextTouchAction(value: String) = when (value) { "PLAY" -> "TOGGLE"; "TOGGLE" -> "NEXT"; "NEXT" -> "STOP"; else -> "PLAY" }
+private fun touchActionLabel(value: String) = when (value) { "TOGGLE" -> "Старт / пауза"; "NEXT" -> "Следующий cue"; "STOP" -> "Стоп"; else -> "Запустить cue" }
+private fun runTouchAction(cue: CueTrack, player: ExoPlayer, tracks: List<CueTrack>, play: (CueTrack) -> Unit) {
+    when (cue.touchAction) {
+        "TOGGLE" -> if (player.currentMediaItem?.localConfiguration?.uri?.toString() == cue.uri && player.isPlaying) player.pause() else play(cue)
+        "NEXT" -> if (player.hasNextMediaItem()) player.seekToNextMediaItem() else play(cue)
+        "STOP" -> player.stop()
+        else -> play(cue)
+    }
+}
+@Composable
+private fun TrackArtwork(uri: String?, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val bitmap = remember(uri) {
+        if (uri.isNullOrBlank()) null else try {
+            val retriever = MediaMetadataRetriever()
+            retriever.setDataSource(context, Uri.parse(uri))
+            val bytes = retriever.embeddedPicture
+            retriever.release()
+            bytes?.let { BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap() }
+        } catch (_: Exception) { null }
+    }
+    Surface(modifier = modifier, color = Panel2, shape = RoundedCornerShape(9.dp)) {
+        if (bitmap != null) Image(bitmap = bitmap, contentDescription = "Обложка аудиофайла", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+        else Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("SC", color = Blue, fontWeight = FontWeight.Black, fontSize = 13.sp) }
     }
 }
 
