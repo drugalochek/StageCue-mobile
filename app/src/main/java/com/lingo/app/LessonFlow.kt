@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -127,7 +128,7 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                         }
                     }
                     Text(ui("Ты изучал слова в контексте, строил предложения, читал и тренировался говорить.", "You learned words in context, built sentences, read, and practiced speaking."), color = Muted, textAlign = TextAlign.Center)
-                    Button(onClick = { onComplete(score, graded) }, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(18.dp)) { Text(ui("Продолжить", "Continue"), fontWeight = FontWeight.Bold) }
+                    Button(onClick = { onComplete(score, graded) }, modifier = Modifier.fillMaxWidth().height(54.dp).background(Brush.horizontalGradient(listOf(Color(0xFF8E6BFF), Color(0xFFB17CFF))), RoundedCornerShape(18.dp)), shape = RoundedCornerShape(18.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)) { Text(ui("Продолжить", "Continue"), fontWeight = FontWeight.Bold) }
                 } else {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = onExit) { Icon(Icons.Default.Close, contentDescription = ui("Закрыть урок", "Close lesson"), tint = Muted, modifier = Modifier.size(28.dp)) }
@@ -372,7 +373,7 @@ internal fun OnboardingScreen(
         Spacer(Modifier.height(18.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             if (step > 0) OutlinedButton(onClick = { step-- }, modifier = Modifier.weight(1f)) { Text(ui("Назад", "Back")) }
-            Button(onClick = { if (step < 3) step++ else onFinish(courseId, goal, level) }, modifier = Modifier.weight(2f)) { Text(if (step < 3) ui("Продолжить", "Continue") else ui("Начать обучение", "Start learning")) }
+            Button(onClick = { if (step < 3) step++ else onFinish(courseId, goal, level) }, modifier = Modifier.weight(2f).height(52.dp).background(Brush.horizontalGradient(listOf(Color(0xFF8E6BFF), Color(0xFFB17CFF))), RoundedCornerShape(16.dp)), shape = RoundedCornerShape(16.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)) { Text(if (step < 3) ui("Продолжить", "Continue") else ui("Начать обучение", "Start learning")) }
         }
     }
 }
