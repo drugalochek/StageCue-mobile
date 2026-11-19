@@ -88,6 +88,7 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
     var score by remember(course.id, placement) { mutableIntStateOf(0) }
     var finished by remember(course.id, placement) { mutableStateOf(false) }
     val task = tasks[index.coerceIn(0, tasks.lastIndex)]
+    val rightPairOrder = remember(index, task.kind) { if (task.kind == "match") task.pairs.indices.shuffled() else emptyList() }
     val speech = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()?.let { input = it }
     }
@@ -206,7 +207,7 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                                     }
                                 }
                                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                                    task.pairs.indices.reversed().forEach { i ->
+                                    rightPairOrder.forEach { i ->
                                         OutlinedButton(onClick = {
                                             if (!checked && left >= 0 && i !in matches) {
                                                 if (left == i) matches = matches + i
@@ -314,7 +315,7 @@ internal fun OnboardingScreen(
                 Spacer(Modifier.height(12.dp))
                 Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     CourseCatalog.courses.forEach { item ->
-                        Surface(color = if (courseId == item.id) Color(0xFFE9EDFF) else Color.White, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth().clickable { courseId = item.id }) {
+                        Surface(color = if (courseId == item.id) CardRaised else Card, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth().clickable { courseId = item.id }) {
                             Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                                 FlagBadge(item.id, Modifier.size(width = 42.dp, height = 28.dp))
                                 Spacer(Modifier.width(12.dp))
@@ -328,7 +329,7 @@ internal fun OnboardingScreen(
             1 -> {
                 Text(ui("Зачем тебе язык?", "Why are you learning?"), fontSize = 25.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
                 listOf("Для путешествий" to "For travel", "Для общения" to "For conversation", "Для учёбы" to "For studies", "Для себя и интереса" to "Personal interest").forEach { (choice, choiceEn) ->
-                    Surface(color = if (reason == choice) Color(0xFFE9EDFF) else Color.White, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth().padding(top = 9.dp).clickable { reason = choice }) {
+                    Surface(color = if (reason == choice) CardRaised else Card, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth().padding(top = 9.dp).clickable { reason = choice }) {
                         Text(ui(choice, choiceEn), Modifier.padding(16.dp), color = Ink, fontWeight = FontWeight.SemiBold)
                     }
                 }
@@ -337,7 +338,7 @@ internal fun OnboardingScreen(
                 Text(ui("Сколько времени уделять?", "How much time per day?"), fontSize = 25.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
                 Text(ui("Выбирай комфортный темп. Его можно поменять в профиле.", "Choose a comfortable pace. You can change it in your profile."), color = Muted)
                 listOf(5, 10, 15, 20).forEach { minutes ->
-                    Surface(color = if (goal == minutes) Color(0xFFE9EDFF) else Color.White, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth().padding(top = 9.dp).clickable { goal = minutes }) {
+                    Surface(color = if (goal == minutes) CardRaised else Card, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth().padding(top = 9.dp).clickable { goal = minutes }) {
                         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text(ui("$minutes минут в день", "$minutes minutes a day"), modifier = Modifier.weight(1f), color = Ink, fontWeight = FontWeight.Bold)
                             if (goal == minutes) Icon(Icons.Default.Check, null, tint = Blue)
@@ -349,7 +350,7 @@ internal fun OnboardingScreen(
                 Text(ui("С чего начнём?", "Where should we start?"), fontSize = 25.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
                 Text(ui("Можно начать с основ или пройти короткую проверку уровня.", "Start with the basics or take a short placement check."), color = Muted)
                 listOf("beginner" to ui("Я начинаю с нуля", "I am a complete beginner"), "placement" to ui("Я уже кое-что знаю", "I already know some of it")).forEach { (id, label) ->
-                    Surface(color = if (level == id) Color(0xFFE9EDFF) else Color.White, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth().padding(top = 9.dp).clickable { level = id }) {
+                    Surface(color = if (level == id) CardRaised else Card, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth().padding(top = 9.dp).clickable { level = id }) {
                         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) { Text(label, modifier = Modifier.weight(1f), color = Ink, fontWeight = FontWeight.SemiBold); if (level == id) Icon(Icons.Default.Check, null, tint = Blue) }
                     }
                 }
