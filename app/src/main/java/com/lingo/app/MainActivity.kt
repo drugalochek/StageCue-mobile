@@ -38,15 +38,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.Locale
 
-internal val Ink = Color(0xFFF5F1FF)
-internal val Muted = Color(0xFFB5AECF)
-internal val Blue = Color(0xFF9B79FF)
-internal val Pale = Color(0xFF0D0B20)
-internal val Green = Color(0xFF59D9B0)
-internal val Line = Color(0xFF39314F)
-internal val Card = Color(0xFF1A1732)
-internal val CardRaised = Color(0xFF252044)
-internal val Gold = Color(0xFFFFC86B)
+internal val Ink = Color(0xFFF5F2FF)
+internal val Muted = Color(0xFFAAA6D0)
+internal val Blue = Color(0xFF9A78FF)
+internal val Pale = Color(0xFF11102F)
+internal val Green = Color(0xFF54D5B5)
+internal val Line = Color(0xFF39366D)
+internal val Card = Color(0xFF19183D)
+internal val CardRaised = Color(0xFF25245A)
+internal val Gold = Color(0xFFFFC85A)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -135,7 +135,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
     Scaffold(
         containerColor = Pale,
         bottomBar = {
-            NavigationBar(containerColor = Pale, tonalElevation = 0.dp, windowInsets = WindowInsets(0.dp)) {
+            NavigationBar(containerColor = Card, tonalElevation = 0.dp, windowInsets = WindowInsets(0.dp), modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp).clip(RoundedCornerShape(24.dp))) {
                 listOf("Учиться", "Квесты", "Словарь", "Магазин", "Профиль").forEach { item ->
                     NavigationBarItem(
                         selected = tab == item,
@@ -150,7 +150,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                             }, contentDescription = item)
                         },
                         label = { Text(when(item) { "Учиться" -> ui("Учиться", "Learn"); "Квесты" -> ui("Квесты", "Quests"); "Словарь" -> ui("Словарь", "Words"); "Магазин" -> ui("Магазин", "Shop"); else -> ui("Профиль", "Profile") }, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(selectedIconColor = Blue, indicatorColor = CardRaised, selectedTextColor = Blue)
+                        colors = NavigationBarItemDefaults.colors(selectedIconColor = Blue, indicatorColor = CardRaised, selectedTextColor = Blue, unselectedIconColor = Muted, unselectedTextColor = Muted)
                     )
                 }
             }
@@ -164,11 +164,15 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
             item {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text("LINGO", fontSize = 13.sp, color = Blue, fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
-                        Text(when (tab) { "Учиться" -> ui("Продолжим?", "Keep learning?") ; "Квесты" -> ui("Твои квесты", "Your quests"); "Словарь" -> ui("Твои слова", "Your vocabulary"); "Магазин" -> ui("Магазин наград", "Rewards shop"); else -> ui("Профиль", "Profile") }, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = Blue, modifier = Modifier.size(24.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Lingo", fontSize = 25.sp, color = Ink, fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.5).sp)
+                        }
+                        Text(when (tab) { "Учиться" -> ui("Продолжим обучение?", "Keep learning?") ; "Квесты" -> ui("Квесты", "Your quests"); "Словарь" -> ui("Словарь", "Your vocabulary"); "Магазин" -> ui("Магазин", "Rewards shop"); else -> ui("Профиль", "Profile") }, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Muted)
                     }
-                    Surface(shape = RoundedCornerShape(16.dp), color = CardRaised) {
-                        Row(Modifier.padding(horizontal = 13.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Surface(shape = RoundedCornerShape(18.dp), color = CardRaised) {
+                        Row(Modifier.padding(horizontal = 12.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.LocalFireDepartment, null, tint = Color(0xFFFF934D), modifier = Modifier.size(20.dp))
                             Spacer(Modifier.width(5.dp))
                             Text("$streak", fontWeight = FontWeight.Bold, color = Ink)
@@ -184,16 +188,27 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                 "Учиться" -> {
                     item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it; question = 0; selected = -1; feedback = false; onSaveSettings(it, dailyGoal) }) }
                     item {
-                        Surface(color = Card, shape = RoundedCornerShape(22.dp)) {
-                            Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Text(course.name.uppercase(), color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                                    Text(unit.title, color = Ink, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                                    Text(course.nativeName + " · " + unit.goal, color = Muted, fontSize = 13.sp)
-                                    LinearProgressIndicator(progress = { (completedLessons % 4) / 4f }, modifier = Modifier.fillMaxWidth().height(7.dp), color = Blue, trackColor = Line)
+                        Surface(color = Card, shape = RoundedCornerShape(28.dp)) {
+                            Box {
+                                Canvas(Modifier.matchParentSize()) {
+                                    drawCircle(Color(0x332E2B83), radius = size.width * 0.48f, center = Offset(size.width * 0.92f, size.height * 0.12f))
+                                    drawCircle(Color(0x222E63C7), radius = size.width * 0.34f, center = Offset(size.width * 0.12f, size.height * 1.05f))
                                 }
-                                Spacer(Modifier.width(10.dp))
-                                BearMascot(Modifier.size(104.dp), emotion = bearEmotion)
+                                Row(Modifier.fillMaxWidth().padding(start = 18.dp, top = 17.dp, end = 12.dp, bottom = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            FlagBadge(course.id, Modifier.size(width = 25.dp, height = 18.dp))
+                                            Spacer(Modifier.width(8.dp))
+                                            Text(course.name.uppercase(), color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+                                        }
+                                        Text(unit.title, color = Ink, fontSize = 21.sp, fontWeight = FontWeight.Bold, lineHeight = 25.sp)
+                                        Text(course.nativeName + " · " + ui("Уровень A1", "Level A1"), color = Muted, fontSize = 13.sp)
+                                        Spacer(Modifier.height(3.dp))
+                                        LinearProgressIndicator(progress = { (completedLessons.coerceAtMost(10) / 10f).coerceAtLeast(0.04f) }, modifier = Modifier.fillMaxWidth().height(9.dp).clip(CircleShape), color = Blue, trackColor = Line)
+                                        Text("${(completedLessons.coerceAtMost(10) * 10 + 4)}%", color = Ink, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                    }
+                                    BearMascot(Modifier.size(116.dp), emotion = bearEmotion)
+                                }
                             }
                         }
                     }
@@ -212,7 +227,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                     CourseCatalog.writing(course.id)?.let { task -> item { WritingCard(task = task) } }
                     item {
                         Text(ui("Ежедневная цель", "Daily goal"), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Ink)
-                        Surface(color = Card, shape = RoundedCornerShape(18.dp)) {
+                        Surface(color = Card, shape = RoundedCornerShape(20.dp)) {
                             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.CheckCircle, null, tint = Green)
@@ -400,14 +415,14 @@ private fun AppLanguageSettingsCard(expanded: Boolean, onExpandedChange: (Boolea
 @Composable
 private fun CoursePicker(course: LanguageCourse, expanded: Boolean, onExpandedChange: (Boolean) -> Unit, onSelect: (String) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        OutlinedButton(onClick = { onExpandedChange(true) }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp)) {
+        OutlinedButton(onClick = { onExpandedChange(true) }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(16.dp), colors = ButtonDefaults.outlinedButtonColors(containerColor = Card)) {
             FlagBadge(course.id, Modifier.size(width = 32.dp, height = 22.dp))
             Spacer(Modifier.width(10.dp))
             Text(course.name + " · " + course.nativeName, modifier = Modifier.weight(1f), textAlign = TextAlign.Start)
             Icon(Icons.Default.ExpandMore, contentDescription = null)
         }
         Spacer(Modifier.width(8.dp))
-        FilledIconButton(onClick = { onExpandedChange(true) }) { Icon(Icons.Default.Add, contentDescription = ui("Добавить курс", "Add course")) }
+        FilledIconButton(onClick = { onExpandedChange(true) }, colors = IconButtonDefaults.filledIconButtonColors(containerColor = CardRaised, contentColor = Blue)) { Icon(Icons.Default.Add, contentDescription = ui("Добавить курс", "Add course")) }
         DropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }) {
             CourseCatalog.courses.forEach { item ->
                 DropdownMenuItem(
@@ -423,7 +438,7 @@ private fun CoursePicker(course: LanguageCourse, expanded: Boolean, onExpandedCh
 @Composable
 private fun DialogueCard(course: LanguageCourse) {
     val dialogue = course.firstUnit.dialogue
-    Surface(color = Card, shape = RoundedCornerShape(20.dp)) {
+    Surface(color = Card, shape = RoundedCornerShape(22.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(ui("ДИАЛОГ · ", "DIALOGUE · ") + course.nativeName.uppercase(), color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             Text(course.firstUnit.title, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
@@ -596,7 +611,7 @@ private fun BearSpeech(message: String, emotion: Int = 2) {
 private fun QuestCard(title: String, description: String, progress: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
     Surface(color = Card, shape = RoundedCornerShape(18.dp)) {
         Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Surface(color = Color(0xFFE9EDFF), shape = RoundedCornerShape(12.dp)) { Icon(icon, null, tint = Blue, modifier = Modifier.padding(11.dp)) }
+            Surface(color = CardRaised, shape = RoundedCornerShape(14.dp)) { Icon(icon, null, tint = Blue, modifier = Modifier.padding(11.dp)) }
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) { Text(title, color = Ink, fontWeight = FontWeight.Bold); Text(description, color = Muted, fontSize = 12.sp) }
             Text(progress, color = Blue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
