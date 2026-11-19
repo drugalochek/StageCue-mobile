@@ -34,10 +34,10 @@ object CourseCatalog {
         LanguageCourse("en", "Английский (США)", "American English", "🇺🇸", "Живая американская разговорная речь, естественные фразы и повседневные ситуации", listOf(
             LessonUnit("Знакомство без шаблонов", "Представиться, задать вопрос и поддержать короткий разговор",
                 listOf(
-                    DialogueLine("Mia", "Hi! I don't think we've met. I'm Mia.", "Привет! Кажется, мы ещё не знакомы. Я Мия."),
-                    DialogueLine("Leo", "Nice to meet you. I'm Leo. Are you new here?", "Приятно познакомиться. Я Лео. Ты здесь недавно?"),
-                    DialogueLine("Mia", "Yes, I moved here last week. I'm still figuring things out.", "Да, я переехала на прошлой неделе. Пока ещё осваиваюсь."),
-                    DialogueLine("Leo", "Then you've come to the right person. I know a good café nearby.", "Тогда ты обратилась по адресу. Я знаю хорошее кафе неподалёку.")
+                    DialogueLine("Mia", "Hey! I don't think we've met. I'm Mia.", "Привет! Кажется, мы ещё не знакомы. Я Мия."),
+                    DialogueLine("Leo", "Nice to meet you. I'm Leo. Did you just move to the neighborhood?", "Приятно познакомиться. Я Лео. Ты здесь недавно?"),
+                    DialogueLine("Mia", "Yeah, last week. I'm still getting the hang of things around here.", "Да, я переехала на прошлой неделе. Пока ещё осваиваюсь."),
+                    DialogueLine("Leo", "I got you. There's a great coffee shop just around the corner.", "Тогда ты обратилась по адресу. Я знаю хорошее кафе неподалёку.")
                 ),
                 listOf(
                     VocabEntry("to figure things out", "разобраться, освоиться", "I'm still figuring things out.", "Разговорное выражение, не переводится дословно."),
