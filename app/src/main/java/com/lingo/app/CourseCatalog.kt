@@ -31,7 +31,7 @@ data class LanguageCourse(
  */
 object CourseCatalog {
     val courses: List<LanguageCourse> = listOf(
-        LanguageCourse("en", "Английский", "English", "🇬🇧", "Естественные фразы и базовый разговорный английский", listOf(
+        LanguageCourse("en", "Английский (США)", "American English", "🇺🇸", "Живая американская разговорная речь, естественные фразы и повседневные ситуации", listOf(
             LessonUnit("Знакомство без шаблонов", "Представиться, задать вопрос и поддержать короткий разговор",
                 listOf(
                     DialogueLine("Mia", "Hi! I don't think we've met. I'm Mia.", "Привет! Кажется, мы ещё не знакомы. Я Мия."),
@@ -45,7 +45,7 @@ object CourseCatalog {
                     VocabEntry("to move", "переехать", "We moved here in May.", "В контексте жилья означает «переехать»."),
                     VocabEntry("Nice to meet you", "приятно познакомиться", "Nice to meet you, too.", "Типичный ответ: Nice to meet you, too.")
                 ),
-                ReadingText("A new start", "Sam has just moved to Bristol. On Saturday, he visits a small bookshop near his flat. The owner recommends a mystery novel. Sam buys it, asks about the opening hours, and promises to come back next week.", "Сэм недавно переехал в Бристоль. В субботу он заходит в небольшой книжный магазин рядом с квартирой. Владелец советует ему детектив. Сэм покупает книгу, спрашивает о часах работы и обещает вернуться на следующей неделе.",
+                ReadingText("A new start", "Sam just moved to Chicago. On Saturday, he stops by a small bookstore near his apartment. The owner recommends a mystery novel. Sam buys it, asks what time the store closes, and says he will come back next week.", "Сэм недавно переехал в Чикаго. В субботу он заходит в небольшой книжный магазин рядом с квартирой. Владелец советует ему детектив. Сэм покупает книгу, спрашивает, во сколько магазин закрывается, и говорит, что вернётся на следующей неделе.",
                     listOf("Where does Sam go on Saturday?" to "A small bookshop.", "What does the owner recommend?" to "A mystery novel.")),
                 listOf(
                     QuizItem("What does “I'm still figuring things out” mean?", listOf("Я всё ещё разбираюсь", "Я уже всё забыл", "Я ищу потерянную вещь"), 0, "Это устойчивое разговорное выражение: человек пока осваивается."),
@@ -53,6 +53,31 @@ object CourseCatalog {
                     QuizItem("Complete: “There is a café ___.”", listOf("nearby", "yesterday", "quickly"), 0, "Nearby значит «неподалёку»."),
                     QuizItem("Which sentence asks about someone's recent move?", listOf("Have you just moved here?", "Do you move yesterday?", "Are you move here?"), 0, "Present Perfect подходит для недавнего события с актуальным результатом."),
                     QuizItem("What is a mystery novel?", listOf("Кулинарная книга", "Детективный роман", "Путеводитель"), 1, "Mystery novel — роман-загадка или детектив.")
+                )
+            )
+        )),
+        LanguageCourse("ru", "Русский", "Русский язык", "🇷🇺", "Современная разговорная речь, повседневные фразы и понятная грамматика", listOf(
+            LessonUnit("Знакомство и повседневное общение", "Поздороваться, представиться, поддержать разговор и задать естественный вопрос",
+                listOf(
+                    DialogueLine("Анна", "Привет! Ты здесь впервые?", "A casual way to ask if someone is here for the first time."),
+                    DialogueLine("Марк", "Да, я недавно переехал. Пока плохо ориентируюсь в районе.", "Yes, I moved recently. I don't know the neighborhood very well yet."),
+                    DialogueLine("Анна", "Ничего, тут быстро освоишься. Рядом есть отличная кофейня.", "No worries, you'll get used to it quickly. There's a great coffee shop nearby."),
+                    DialogueLine("Марк", "Здорово! А как туда пройти?", "Nice! How do I get there?")
+                ),
+                listOf(
+                    VocabEntry("освоиться", "get settled; get used to a place", "Я ещё не успел освоиться в новом городе.", "Разговорный глагол о привыкании к новому месту или ситуации."),
+                    VocabEntry("ориентироваться", "to find one's way; to navigate", "Я пока плохо ориентируюсь в центре.", "Можно использовать и буквально, и в переносном смысле."),
+                    VocabEntry("ничего", "it's okay; no worries", "Ничего, со временем привыкнешь.", "В разговоре часто выражает поддержку, а не отсутствие чего-либо."),
+                    VocabEntry("здорово", "great; cool", "Здорово, давай встретимся вечером.", "Неформальная положительная реакция.")
+                ),
+                ReadingText("Новый район", "Илья недавно переехал в другой район города. В первый выходной он решил прогуляться и посмотреть, что находится рядом с домом. Сначала он зашёл в небольшую пекарню, потом спросил дорогу до парка. Продавец объяснил маршрут и посоветовал заглянуть на местный рынок. К вечеру Илья уже немного освоился и нашёл несколько интересных мест.", "Ilya recently moved to another part of the city. On his first day off, he decided to take a walk and see what was nearby. First, he stopped by a small bakery, then asked for directions to the park. The shop assistant explained the route and recommended visiting the local market. By evening, Ilya had settled in a little and found several interesting places.",
+                    listOf("Куда Илья решил пойти сначала?" to "В небольшую пекарню.", "Что ему посоветовал продавец?" to "Заглянуть на местный рынок.")),
+                listOf(
+                    QuizItem("Что означает «освоиться»?", listOf("Привыкнуть к новому месту", "Быстро уйти", "Что-то потерять"), 0, "Освоиться — привыкнуть к обстановке и начать чувствовать себя уверенно."),
+                    QuizItem("Выбери естественный ответ на «Спасибо!»", listOf("Не за что!", "Я есть спасибо.", "Пожалуйста вчера."), 0, "«Не за что» — обычный разговорный ответ на благодарность."),
+                    QuizItem("Как спросить дорогу?", listOf("Как пройти до парка?", "Сколько лет парк?", "Где ты вчера парк?"), 0, "«Как пройти до…?» — естественный вопрос о маршруте."),
+                    QuizItem("Что значит «заглянуть в кофейню»?", listOf("Ненадолго зайти", "Построить кофейню", "Закрыть кофейню"), 0, "Заглянуть — зайти ненадолго, часто по пути."),
+                    QuizItem("Как звучит неформальная положительная реакция?", listOf("Здорово!", "Вследствие этого.", "Имеется в наличии."), 0, "«Здорово!» — разговорное выражение одобрения.")
                 )
             )
         )),
