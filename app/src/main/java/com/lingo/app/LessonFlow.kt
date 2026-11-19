@@ -247,7 +247,7 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                     if (checked) {
                         Surface(color = CardRaised, shape = RoundedCornerShape(14.dp)) {
                             Column(Modifier.fillMaxWidth().padding(13.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                                Text(if (correct) ui("Верно!", "Correct!") else ui("Разберём ответ", "Review your answer")), color = if (correct) Green else Gold, fontWeight = FontWeight.Bold)
+                                Text(if (correct) ui("Верно!", "Correct!") else ui("Разберём ответ", "Review your answer"), color = if (correct) Green else Gold, fontWeight = FontWeight.Bold)
                                 if (!correct && task.answer.isNotBlank()) Text(ui("Правильный вариант: ", "Correct answer: ") + task.answer, color = Ink)
                                 if (task.explanation.isNotBlank()) Text(task.explanation, color = Muted, fontSize = 12.sp)
                             }
