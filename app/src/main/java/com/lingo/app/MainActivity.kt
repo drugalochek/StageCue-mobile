@@ -169,6 +169,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSa
                     }
                     item { DialogueCard(course = course) }
                     item { ReadingCard(reading = unit.reading) }
+                    items(CourseCatalog.grammar(course.id).size) { index -> GrammarCard(point = CourseCatalog.grammar(course.id)[index]) }
                     item {
                         Text("Ежедневная цель", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Ink)
                         Surface(color = Color.White, shape = RoundedCornerShape(18.dp)) {
@@ -296,6 +297,27 @@ private fun ReadingCard(reading: ReadingText) {
                     TextButton(onClick = { showAnswer = !showAnswer }, contentPadding = PaddingValues(0.dp)) {
                         Text(if (showAnswer) answer else "Показать ответ")
                     }
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun GrammarCard(point: GrammarPoint) {
+    Surface(color = Color.White, shape = RoundedCornerShape(20.dp)) {
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+            Text("КАК СТРОИТЬ ФРАЗЫ", color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            Text(point.title, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Surface(color = Pale, shape = RoundedCornerShape(10.dp)) {
+                Text(point.pattern, Modifier.fillMaxWidth().padding(12.dp), color = Blue, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+            }
+            Text(point.explanation, color = Muted, fontSize = 14.sp, lineHeight = 21.sp)
+            point.examples.forEach { (example, translation) ->
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(example, color = Ink, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text(translation, color = Muted, fontSize = 12.sp)
                 }
             }
         }
