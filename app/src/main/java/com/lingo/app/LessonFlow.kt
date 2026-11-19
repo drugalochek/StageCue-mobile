@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,139 +36,249 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 
 private data class LessonTask(
-    val kind: String,
-    val title: String,
-    val prompt: String,
-    val answer: String,
-    val options: List<String> = emptyList(),
-    val explanation: String = ""
+    val kind: String, val title: String, val prompt: String,
+    val answer: String = "", val options: List<String> = emptyList(),
+    val explanation: String = "", val pairs: List<Pair<String, String>> = emptyList()
 )
 
 private fun lessonTasks(course: LanguageCourse, placement: Boolean): List<LessonTask> {
-    val unit = course.firstUnit
-    val words = unit.vocabulary
-    val first = words[0]
-    val second = words.getOrElse(1) { first }
-    val third = words.getOrElse(2) { second }
-    val quiz = unit.quiz.first()
-    val readingQuestion = unit.reading.questions.first()
-    val spoken = unit.dialogue.first().text
-    val sample = first.example.replace(first.term, "_____ ", ignoreCase = true).replace("_____  ", "_____ ").trim()
-    return if (placement) {
-        unit.quiz.take(8).map { LessonTask("choice", "Проверка уровня", it.prompt, it.options[it.answer], it.options, it.explanation) }
-    } else listOf(
-        LessonTask("choice", "Узнай слово", "Как переводится «${first.term}»?", first.meaning,
-            listOf(first.meaning, second.meaning, third.meaning).distinct(), first.note),
-        LessonTask("type", "Вспомни написание", "Напиши на изучаемом языке: «${second.meaning}»", second.term,
-            explanation = second.example),
-        LessonTask("fill", "Заполни пропуск", if (sample.contains("_____")) sample else "Вставь слово «${third.term}» в пример: ${third.example}",
-            if (sample.contains("_____")) first.term else third.term, explanation = first.example),
-        LessonTask("choice", "Выбери правильный ответ", quiz.prompt, quiz.options[quiz.answer], quiz.options, quiz.explanation),
-        LessonTask("reading", "Пойми текст", readingQuestion.first, readingQuestion.second,
-            listOf(readingQuestion.second, "В тексте этого не сказано", unit.reading.questions.last().second).distinct(),
-            "Ответ ищется в тексте «${unit.reading.title}»."),
-        LessonTask("order", "Собери фразу", "Перепечатай фразу в правильном порядке:\n" + spoken.split(" ").shuffled().joinToString("  "), spoken,
-            explanation = unit.dialogue.first().translation),
-        LessonTask("speak", "Произнеси вслух", "Нажми на микрофон и произнеси:\n«$spoken»", spoken,
-            explanation = unit.dialogue.first().translation)
+    val u = course.firstUnit
+    if (placement) return u.quiz.take(8).map {
+        LessonTask("choice", "Проверка уровня", it.prompt, it.options[it.answer], it.options, it.explanation)
+    }
+    val v = u.vocabulary
+    val a = v[0]
+    val b = v.getOrElse(1) { a }
+    val c = v.getOrElse(2) { a }
+    val firstLine = u.dialogue.first()
+    val blank = a.example.replace(a.term, "_____", ignoreCase = true)
+    val fillAnswer = if (blank != a.example) a.term else c.term
+    val fillPrompt = if (blank != a.example) blank else c.example
+    return listOf(
+        LessonTask("intro", "Знакомство с темой", u.title, explanation = u.goal),
+        LessonTask("listen", "Слушай и собирай фразу", "Собери фразу из слов в правильном порядке.",
+            firstLine.text, firstLine.text.split(Regex("\\s+")).shuffled(), "Перевод: " + firstLine.translation),
+        LessonTask("type", "Переведи самостоятельно", "Напиши на изучаемом языке:\n«" + b.meaning + "»",
+            b.term, explanation = "Пример: " + b.example),
+        LessonTask("fill", "Восстанови предложение", "Вставь пропущенное слово:\n" + fillPrompt,
+            fillAnswer, explanation = a.meaning + ". " + a.note),
+        LessonTask("match", "Соедини пары", "Найди перевод каждого слова.",
+            pairs = v.take(4).map { it.term to it.meaning }, explanation = "Повтори эти пары: они встретятся дальше."),
+        LessonTask("reading", "Прочитай и пойми", u.reading.title + "\n\n" + u.reading.body,
+            u.reading.questions.first().second,
+            listOf(u.reading.questions.first().second, u.reading.questions.last().second).distinct(),
+            u.reading.translation),
+        LessonTask("speak", "Произнеси фразу", "Произнеси вслух:\n«" + u.dialogue.last().text + "»",
+            u.dialogue.last().text, explanation = u.dialogue.last().translation)
     )
 }
 
 @Composable
-internal fun LessonFlow(
-    course: LanguageCourse,
-    placement: Boolean,
-    onExit: () -> Unit,
-    onComplete: (Int, Int) -> Unit
-) {
+internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -> Unit, onComplete: (Int, Int) -> Unit) {
     val tasks = remember(course.id, placement) { lessonTasks(course, placement) }
+    val graded = tasks.count { it.kind != "intro" }
     var index by remember(course.id, placement) { mutableIntStateOf(0) }
     var input by remember(course.id, placement) { mutableStateOf("") }
-    var chosen by remember(course.id, placement) { mutableStateOf("") }
+    var choice by remember(course.id, placement) { mutableStateOf("") }
+    var tiles by remember(course.id, placement) { mutableStateOf(listOf<Int>()) }
+    var matches by remember(course.id, placement) { mutableStateOf(setOf<Int>()) }
+    var left by remember(course.id, placement) { mutableIntStateOf(-1) }
     var checked by remember(course.id, placement) { mutableStateOf(false) }
-    var wasCorrect by remember(course.id, placement) { mutableStateOf(false) }
+    var correct by remember(course.id, placement) { mutableStateOf(false) }
     var score by remember(course.id, placement) { mutableIntStateOf(0) }
     var finished by remember(course.id, placement) { mutableStateOf(false) }
-    val context = LocalContext.current
     val task = tasks[index.coerceIn(0, tasks.lastIndex)]
-    val speechLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        val spoken = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull().orEmpty()
-        if (spoken.isNotBlank()) input = spoken
+    val speech = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()?.let { input = it }
     }
-    fun normalize(value: String) = value.lowercase().trim().replace(Regex("[^\\p{L}\\p{N} ]"), "").replace(Regex("\\s+"), " ")
-    fun checkAnswer() {
+    fun norm(s: String) = s.lowercase().trim().replace(Regex("[^\\p{L}\\p{N} ]"), "").replace(Regex("\\s+"), " ")
+    fun candidate() = when (task.kind) {
+        "listen" -> tiles.joinToString(" ") { task.options[it] }
+        "choice", "reading" -> choice
+        else -> input
+    }
+    fun check() {
         if (checked) return
-        val candidate = if (task.kind == "choice") chosen else input
-        wasCorrect = normalize(candidate) == normalize(task.answer)
-        if (wasCorrect) score++
+        correct = if (task.kind == "match") matches.size == task.pairs.size else norm(candidate()) == norm(task.answer)
+        if (correct) score++
         checked = true
     }
+    fun next() {
+        if (index == tasks.lastIndex) finished = true else {
+            index++; input = ""; choice = ""; tiles = emptyList(); matches = emptySet()
+            left = -1; checked = false; correct = false
+        }
+    }
+
     Dialog(onDismissRequest = onExit) {
         Surface(color = Card, shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth()) {
-            Column(Modifier.fillMaxWidth().heightIn(max = 690.dp).verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Column(Modifier.fillMaxWidth().heightIn(max = 710.dp).verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
                 if (finished) {
                     Text("Урок завершён", fontSize = 25.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
-                    Text("$score из ${tasks.size} заданий правильно", color = Muted)
-                    LinearProgressIndicator(progress = { score.toFloat() / tasks.size }, modifier = Modifier.fillMaxWidth().height(9.dp))
-                    Text(if (score >= tasks.size * 0.7f) "Хорошая работа. Материал закреплён." else "Часть заданий стоит повторить. Ошибки для этого и существуют.", color = Ink)
-                    Button(onClick = { onComplete(score, tasks.size) }, modifier = Modifier.fillMaxWidth()) { Text("Продолжить") }
+                    Text(score.toString() + " из " + graded + " упражнений выполнено правильно", color = Muted)
+                    LinearProgressIndicator(progress = { score.toFloat() / graded.coerceAtLeast(1) }, modifier = Modifier.fillMaxWidth().height(9.dp))
+                    Text("Ты изучал слова в контексте, строил предложения, читал и тренировался говорить.", color = Ink)
+                    Button(onClick = { onComplete(score, graded) }, modifier = Modifier.fillMaxWidth()) { Text("Продолжить") }
                 } else {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = onExit) { Icon(Icons.Default.ArrowBack, contentDescription = "Закрыть урок") }
+                        IconButton(onClick = onExit) { Icon(Icons.Default.ArrowBack, contentDescription = "Закрыть урок", tint = Ink) }
                         Column(Modifier.weight(1f)) {
                             Text(if (placement) "Проверка уровня" else course.name, fontWeight = FontWeight.Bold, color = Ink)
-                            Text("Задание ${index + 1} из ${tasks.size}", color = Muted, fontSize = 12.sp)
+                            Text("Шаг " + (index + 1) + " из " + tasks.size, color = Muted, fontSize = 12.sp)
                         }
-                        Text("${(index * 100 / tasks.size)}%", color = Blue, fontWeight = FontWeight.Bold)
+                        Text((index * 100 / tasks.size).toString() + "%", color = Blue, fontWeight = FontWeight.Bold)
                     }
                     LinearProgressIndicator(progress = { index.toFloat() / tasks.size }, modifier = Modifier.fillMaxWidth().height(8.dp), color = Blue, trackColor = Line)
-                    Surface(color = Pale, shape = RoundedCornerShape(12.dp)) {
-                        Text(task.title.uppercase(), Modifier.fillMaxWidth().padding(11.dp), color = Blue, fontWeight = FontWeight.Bold, fontSize = 11.sp, letterSpacing = 1.sp)
+                    Surface(color = CardRaised, shape = RoundedCornerShape(12.dp)) {
+                        Text(task.title.uppercase(), Modifier.fillMaxWidth().padding(11.dp), color = Blue, fontWeight = FontWeight.Bold, fontSize = 11.sp)
                     }
-                    Text(task.prompt, fontSize = 19.sp, lineHeight = 27.sp, fontWeight = FontWeight.SemiBold, color = Ink)
                     when (task.kind) {
-                        "choice", "reading" -> task.options.forEach { option ->
-                            val active = chosen == option
-                            OutlinedButton(
-                                onClick = { if (!checked) chosen = option },
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.outlinedButtonColors(containerColor = if (checked && option == task.answer) Color(0xFFE8F7EF) else if (active) CardRaised else Color.White)
-                            ) { Text(option, color = Ink, textAlign = TextAlign.Start, modifier = Modifier.fillMaxWidth()) }
+                        "intro" -> {
+                            Text(task.prompt, fontSize = 22.sp, lineHeight = 29.sp, fontWeight = FontWeight.Bold, color = Ink)
+                            Text(task.explanation, color = Muted)
+                            Text("Новые выражения", color = Ink, fontWeight = FontWeight.Bold)
+                            course.firstUnit.vocabulary.take(4).forEach { w ->
+                                Surface(color = CardRaised, shape = RoundedCornerShape(13.dp), modifier = Modifier.fillMaxWidth()) {
+                                    Column(Modifier.padding(13.dp)) {
+                                        Text(w.term, color = Ink, fontWeight = FontWeight.Bold)
+                                        Text(w.meaning, color = Blue)
+                                        if (w.note.isNotBlank()) Text(w.note, color = Muted, fontSize = 12.sp)
+                                    }
+                                }
+                            }
+                            Text("Короткий диалог", color = Ink, fontWeight = FontWeight.Bold)
+                            course.firstUnit.dialogue.take(2).forEach { d ->
+                                Surface(color = CardRaised, shape = RoundedCornerShape(13.dp), modifier = Modifier.fillMaxWidth()) {
+                                    Column(Modifier.padding(12.dp)) {
+                                        Text(d.speaker, color = Blue, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                        Text(d.text, color = Ink)
+                                        Text(d.translation, color = Muted, fontSize = 12.sp)
+                                    }
+                                }
+                            }
+                        }
+                        "listen" -> {
+                            Text(task.prompt, fontSize = 19.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+                            Surface(color = CardRaised, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
+                                Row(Modifier.padding(17.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.VolumeUp, contentDescription = null, tint = Blue)
+                                    Spacer(Modifier.width(10.dp))
+                                    Column {
+                                        Text("Фраза для восприятия на слух", color = Ink, fontWeight = FontWeight.Bold)
+                                        Text(task.answer, color = Muted, fontSize = 12.sp)
+                                    }
+                                }
+                            }
+                            Text("Твоя фраза", color = Muted, fontSize = 12.sp)
+                            Surface(color = CardRaised, shape = RoundedCornerShape(13.dp), modifier = Modifier.fillMaxWidth()) {
+                                Row(Modifier.padding(9.dp), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                                    if (tiles.isEmpty()) Text("Выбери слова ниже", color = Muted)
+                                    tiles.forEach { i ->
+                                        Surface(color = Blue, shape = RoundedCornerShape(8.dp), modifier = Modifier.clickable { if (!checked) tiles = tiles - i }) {
+                                            Text(task.options[i], Modifier.padding(horizontal = 8.dp, vertical = 7.dp), color = Color.White)
+                                        }
+                                    }
+                                }
+                            }
+                            task.options.indices.toList().chunked(3).forEach { rowItems ->
+                                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                                    rowItems.filter { it !in tiles }.forEach { i ->
+                                        OutlinedButton(onClick = { if (!checked) tiles = tiles + i }, contentPadding = PaddingValues(horizontal = 9.dp, vertical = 4.dp)) {
+                                            Text(task.options[i], color = Ink)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        "type", "fill" -> {
+                            Text(task.prompt, fontSize = 19.sp, lineHeight = 27.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+                            OutlinedTextField(value = input, onValueChange = { if (!checked) input = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Твой ответ") }, minLines = 2)
+                        }
+                        "match" -> {
+                            Text(task.prompt, fontSize = 19.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                                    task.pairs.forEachIndexed { i, pair ->
+                                        OutlinedButton(onClick = { if (!checked && i !in matches) left = i }, modifier = Modifier.fillMaxWidth(),
+                                            colors = ButtonDefaults.outlinedButtonColors(containerColor = if (left == i) CardRaised else Card)) {
+                                            Text(pair.first, color = Ink, textAlign = TextAlign.Center)
+                                        }
+                                    }
+                                }
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                                    task.pairs.indices.reversed().forEach { i ->
+                                        OutlinedButton(onClick = {
+                                            if (!checked && left >= 0 && i !in matches) {
+                                                if (left == i) matches = matches + i
+                                                left = -1
+                                            }
+                                        }, modifier = Modifier.fillMaxWidth(), enabled = !checked && i !in matches) {
+                                            Text(task.pairs[i].second, color = Ink, textAlign = TextAlign.Center)
+                                        }
+                                    }
+                                }
+                            }
+                            Text("Найдено пар: " + matches.size + " / " + task.pairs.size, color = Muted, fontSize = 12.sp)
+                        }
+                        "choice", "reading" -> {
+                            Text(task.prompt, fontSize = 19.sp, lineHeight = 27.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+                            task.options.forEach { option ->
+                                OutlinedButton(onClick = { if (!checked) choice = option }, modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.outlinedButtonColors(containerColor = if (choice == option) CardRaised else Card)) {
+                                    Text(option, color = Ink, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Start)
+                                }
+                            }
                         }
                         "speak" -> {
+                            Text(task.prompt, fontSize = 19.sp, lineHeight = 27.sp, fontWeight = FontWeight.SemiBold, color = Ink)
                             OutlinedTextField(value = input, onValueChange = { if (!checked) input = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Распознанная речь") })
                             Button(onClick = {
                                 val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                                     putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                                     putExtra(RecognizerIntent.EXTRA_LANGUAGE, course.id)
-                                    putExtra(RecognizerIntent.EXTRA_PROMPT, "Произнеси фразу на ${course.nativeName}")
+                                    putExtra(RecognizerIntent.EXTRA_PROMPT, "Произнеси фразу на " + course.nativeName)
                                 }
-                                runCatching { speechLauncher.launch(intent) }
+                                runCatching { speech.launch(intent) }
                             }, modifier = Modifier.fillMaxWidth()) {
-                                Icon(Icons.Default.Mic, null); Spacer(Modifier.width(8.dp)); Text("Распознать речь")
+                                Icon(Icons.Default.Mic, contentDescription = null); Spacer(Modifier.width(8.dp)); Text("Распознать речь")
                             }
-                            Text("Распознавание зависит от доступного на устройстве голосового сервиса.", color = Muted, fontSize = 11.sp)
                         }
-                        else -> OutlinedTextField(value = input, onValueChange = { if (!checked) input = it }, modifier = Modifier.fillMaxWidth(), label = { Text(if (task.kind == "order") "Фраза целиком" else "Твой ответ") })
                     }
                     if (checked) {
-                        Surface(color = if (wasCorrect) Color(0xFFE8F7EF) else Color(0xFFFFF0F0), shape = RoundedCornerShape(14.dp)) {
-                            Column(Modifier.fillMaxWidth().padding(13.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text(if (wasCorrect) "Верно!" else "Правильный ответ: ${task.answer}", color = if (wasCorrect) Green else Color(0xFFC75B5B), fontWeight = FontWeight.Bold)
-                                if (task.explanation.isNotBlank()) Text(task.explanation, color = Ink, fontSize = 12.sp)
+                        Surface(color = CardRaised, shape = RoundedCornerShape(14.dp)) {
+                            Column(Modifier.fillMaxWidth().padding(13.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                Text(if (correct) "Верно!" else "Разберём ответ", color = if (correct) Green else Gold, fontWeight = FontWeight.Bold)
+                                if (!correct && task.answer.isNotBlank()) Text("Правильный вариант: " + task.answer, color = Ink)
+                                if (task.explanation.isNotBlank()) Text(task.explanation, color = Muted, fontSize = 12.sp)
                             }
                         }
                     }
                     Button(
                         onClick = {
-                            if (!checked) checkAnswer()
-                            else if (index == tasks.lastIndex) finished = true
-                            else { index++; input = ""; chosen = ""; checked = false; wasCorrect = false }
+                            when {
+                                task.kind == "intro" -> next()
+                                !checked -> check()
+                                !correct -> { checked = false; input = ""; choice = ""; tiles = emptyList() }
+                                else -> next()
+                            }
                         },
-                        enabled = checked || (if (task.kind == "choice" || task.kind == "reading") chosen.isNotBlank() else input.isNotBlank()),
+                        enabled = task.kind == "intro" || checked || when (task.kind) {
+                            "listen" -> tiles.isNotEmpty()
+                            "match" -> matches.size == task.pairs.size
+                            "choice", "reading" -> choice.isNotBlank()
+                            else -> input.isNotBlank()
+                        },
                         modifier = Modifier.fillMaxWidth()
-                    ) { Text(if (!checked) "Проверить" else if (index == tasks.lastIndex) "Завершить урок" else "Дальше") }
-                    Text("За урок можно ошибаться. Важно понять объяснение и попробовать снова.", color = Muted, fontSize = 11.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                    ) {
+                        Text(when {
+                            task.kind == "intro" -> "Перейти к практике"
+                            !checked -> "Проверить ответ"
+                            !correct -> "Исправить и повторить"
+                            index == tasks.lastIndex -> "Завершить урок"
+                            else -> "Следующий этап"
+                        })
+                    }
+                    Text("После каждого упражнения разбираем результат и закрепляем материал.", color = Muted, fontSize = 11.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                 }
             }
         }
