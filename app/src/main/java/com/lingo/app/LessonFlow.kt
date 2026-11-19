@@ -147,27 +147,14 @@ internal fun LessonFlow(course: LanguageCourse, unit: LessonUnit, placement: Boo
                     Text(if (placement) ui("Проверка уровня", "Placement check") else task.title, fontSize = 22.sp, lineHeight = 28.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
                     when (task.kind) {
                         "intro" -> {
-                            Text(task.prompt, fontSize = 22.sp, lineHeight = 29.sp, fontWeight = FontWeight.Bold, color = Ink)
-                            Text(task.explanation, color = Muted)
-                            Text(ui("Новые выражения", "New expressions"), color = Ink, fontWeight = FontWeight.Bold)
-                            unit.vocabulary.forEach { w ->
-                                Surface(color = CardRaised, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
-                                    Column(Modifier.padding(13.dp)) {
-                                        Text(w.term, color = Ink, fontWeight = FontWeight.Bold)
-                                        Text(w.meaning, color = Blue)
-                                        if (w.note.isNotBlank()) Text(w.note, color = Muted, fontSize = 12.sp)
-                                    }
-                                }
-                            }
-                            Text(ui("Короткий диалог", "Short dialogue"), color = Ink, fontWeight = FontWeight.Bold)
-                            unit.dialogue.take(2).forEach { d ->
-                                Surface(color = CardRaised, shape = RoundedCornerShape(13.dp), modifier = Modifier.fillMaxWidth()) {
-                                    Column(Modifier.padding(12.dp)) {
-                                        Text(d.speaker, color = Blue, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                                        Text(d.text, color = Ink)
-                                        Text(d.translation, color = Muted, fontSize = 12.sp)
-                                    }
-                                }
+                            Text(task.prompt, fontSize = 25.sp, lineHeight = 32.sp, fontWeight = FontWeight.Bold, color = Ink)
+                            Text(task.explanation, fontSize = 17.sp, lineHeight = 25.sp, color = Muted)
+                            Surface(color = CardRaised, shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
+                                Text(
+                                    ui("Сначала разберём тему простыми словами, затем выучим несколько слов и только после этого перейдём к заданиям.",
+                                        "First, understand the topic. Then learn a few words before you try the exercises."),
+                                    modifier = Modifier.padding(16.dp), color = Ink, fontSize = 14.sp, lineHeight = 21.sp
+                                )
                             }
                         }
                         "learn" -> {
