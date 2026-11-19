@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.VolumeUp
@@ -34,6 +35,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 
 private data class LessonTask(
     val kind: String, val title: String, val prompt: String,
@@ -111,9 +113,9 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
         }
     }
 
-    Dialog(onDismissRequest = onExit) {
-        Surface(color = Card, shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth()) {
-            Column(Modifier.fillMaxWidth().heightIn(max = 710.dp).verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
+    Dialog(onDismissRequest = onExit, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+        Surface(color = Pale, shape = RoundedCornerShape(0.dp), modifier = Modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 24.dp, end = 24.dp, top = 28.dp, bottom = 30.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
                 if (finished) {
                     Text(ui("Урок завершён", "Lesson complete"), fontSize = 25.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
                     Text(score.toString() + " из " + graded + " упражнений выполнено правильно", color = Muted)
@@ -122,16 +124,16 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                     Button(onClick = { onComplete(score, graded) }, modifier = Modifier.fillMaxWidth()) { Text(ui("Продолжить", "Continue")) }
                 } else {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = onExit) { Icon(Icons.Default.ArrowBack, contentDescription = ui("Закрыть урок", "Close lesson"), tint = Ink) }
+                        IconButton(onClick = onExit) { Icon(Icons.Default.Close, contentDescription = ui("Закрыть урок", "Close lesson"), tint = Muted, modifier = Modifier.size(28.dp)) }
                         Column(Modifier.weight(1f)) {
                             Text(if (placement) ui("Проверка уровня", "Placement check") else course.name, fontWeight = FontWeight.Bold, color = Ink)
                             Text(ui("Шаг ", "Step ") + (index + 1) + ui(" из ", " of ") + tasks.size, color = Muted, fontSize = 12.sp)
                         }
-                        Text((index * 100 / tasks.size).toString() + "%", color = Blue, fontWeight = FontWeight.Bold)
+                        Text("${index + 1} / ${tasks.size}", color = Ink, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                     }
-                    LinearProgressIndicator(progress = { index.toFloat() / tasks.size }, modifier = Modifier.fillMaxWidth().height(8.dp), color = Blue, trackColor = Line)
-                    Surface(color = CardRaised, shape = RoundedCornerShape(12.dp)) {
-                        Text(task.title.uppercase(), Modifier.fillMaxWidth().padding(11.dp), color = Blue, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                    LinearProgressIndicator(progress = { (index + 1).toFloat() / tasks.size }, modifier = Modifier.fillMaxWidth().height(9.dp), color = Blue, trackColor = Line, strokeCap = androidx.compose.ui.graphics.StrokeCap.Round)
+                    Surface(color = CardRaised, shape = RoundedCornerShape(14.dp)) {
+                        Text(task.title.uppercase(), Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp), color = Blue, fontWeight = FontWeight.Bold, fontSize = 11.sp, letterSpacing = 1.sp)
                     }
                     when (task.kind) {
                         "intro" -> {
