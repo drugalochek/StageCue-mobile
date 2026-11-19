@@ -55,7 +55,11 @@ private fun lessonTasks(course: LanguageCourse, unit: LessonUnit, placement: Boo
     val firstLine = u.dialogue.first()
     val blank = a.example.replace(a.term.substringBefore(" / "), "_____", ignoreCase = true)
     val fillAnswer = a.term.substringBefore(" / ")
-    val fillPrompt = if (blank != a.example) blank else a.example
+    val fillPrompt = if (blank != a.example) blank else {
+        val firstWord = firstLine.text.substringBefore(" ")
+        firstLine.text.replaceFirst(firstWord, "_____", ignoreCase = true)
+    }
+    val actualFillAnswer = if (blank != a.example) fillAnswer else firstLine.text.substringBefore(" ")
     val quizTasks = u.quiz.map { quiz ->
         LessonTask("choice", "Проверь себя", quiz.prompt, quiz.options[quiz.answer], quiz.options, quiz.explanation)
     }
@@ -70,7 +74,7 @@ private fun lessonTasks(course: LanguageCourse, unit: LessonUnit, placement: Boo
         LessonTask("type", "Переведи самостоятельно", "Напиши на изучаемом языке:\n«" + b.meaning + "»",
             b.term, explanation = "Пример: " + b.example),
         LessonTask("fill", "Восстанови предложение", "Вставь пропущенное слово:\n" + fillPrompt,
-            fillAnswer, explanation = a.meaning + ". " + a.note),
+            actualFillAnswer, explanation = a.meaning + ". " + a.note),
         LessonTask("reading", "Прочитай и пойми", u.reading.title + "\n\n" + u.reading.body,
             u.reading.questions.first().second,
             listOf(u.reading.questions.first().second, u.reading.questions.last().second).distinct(),
