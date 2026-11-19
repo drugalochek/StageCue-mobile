@@ -2,6 +2,8 @@ name: Build Lingo APK
 on:
   workflow_dispatch:
   push:
+    branches: [ main, 'redesign/**' ]
+  pull_request:
     branches: [ main ]
 permissions:
   contents: read

@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.VolumeUp
@@ -27,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -34,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 
 private data class LessonTask(
     val kind: String, val title: String, val prompt: String,
@@ -54,21 +57,23 @@ private fun lessonTasks(course: LanguageCourse, placement: Boolean): List<Lesson
     val blank = a.example.replace(a.term, "_____", ignoreCase = true)
     val fillAnswer = if (blank != a.example) a.term else c.term
     val fillPrompt = if (blank != a.example) blank else c.example
-    return listOf(
-        LessonTask("intro", "Знакомство с темой", u.title, explanation = u.goal),
+    val quizTasks = u.quiz.take(4).map { quiz ->
+        LessonTask("choice", "Выбери правильный перевод", quiz.prompt, quiz.options[quiz.answer], quiz.options, quiz.explanation)
+    }
+    return quizTasks + listOf(
         LessonTask("listen", "Слушай и собирай фразу", "Собери фразу из слов в правильном порядке.",
-            firstLine.text, firstLine.text.split(Regex("\\s+")).shuffled(), "Перевод: " + firstLine.translation),
-        LessonTask("type", "Переведи самостоятельно", "Напиши на изучаемом языке:\n«" + b.meaning + "»",
+            firstLine.text, firstLine.text.split(Regex("\\\\s+")).shuffled(), "Перевод: " + firstLine.translation),
+        LessonTask("type", "Переведи самостоятельно", "Напиши на изучаемом языке:\\n«" + b.meaning + "»",
             b.term, explanation = "Пример: " + b.example),
-        LessonTask("fill", "Восстанови предложение", "Вставь пропущенное слово:\n" + fillPrompt,
+        LessonTask("fill", "Восстанови предложение", "Вставь пропущенное слово:\\n" + fillPrompt,
             fillAnswer, explanation = a.meaning + ". " + a.note),
         LessonTask("match", "Соедини пары", "Найди перевод каждого слова.",
             pairs = v.take(4).map { it.term to it.meaning }, explanation = "Повтори эти пары: они встретятся дальше."),
-        LessonTask("reading", "Прочитай и пойми", u.reading.title + "\n\n" + u.reading.body,
+        LessonTask("reading", "Прочитай и пойми", u.reading.title + "\\n\\n" + u.reading.body,
             u.reading.questions.first().second,
             listOf(u.reading.questions.first().second, u.reading.questions.last().second).distinct(),
             u.reading.translation),
-        LessonTask("speak", "Произнеси фразу", "Произнеси вслух:\n«" + u.dialogue.last().text + "»",
+        LessonTask("speak", "Произнеси фразу", "Произнеси вслух:\\n«" + u.dialogue.last().text + "»",
             u.dialogue.last().text, explanation = u.dialogue.last().translation)
     )
 }
@@ -111,35 +116,37 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
         }
     }
 
-    Dialog(onDismissRequest = onExit) {
-        Surface(color = Card, shape = RoundedCornerShape(26.dp), modifier = Modifier.fillMaxWidth()) {
-            Column(Modifier.fillMaxWidth().heightIn(max = 710.dp).verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
+    Dialog(onDismissRequest = onExit, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Surface(color = Pale, shape = RoundedCornerShape(0.dp), modifier = Modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxSize().background(Pale).verticalScroll(rememberScrollState()).padding(start = 22.dp, end = 22.dp, top = 28.dp, bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
                 if (finished) {
-                    Text(ui("Урок завершён", "Lesson complete"), fontSize = 25.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
-                    Text(score.toString() + " из " + graded + " упражнений выполнено правильно", color = Muted)
-                    LinearProgressIndicator(progress = { score.toFloat() / graded.coerceAtLeast(1) }, modifier = Modifier.fillMaxWidth().height(9.dp))
-                    Text(ui("Ты изучал слова в контексте, строил предложения, читал и тренировался говорить.", "You learned words in context, built sentences, read, and practiced speaking."), color = Ink)
-                    Button(onClick = { onComplete(score, graded) }, modifier = Modifier.fillMaxWidth()) { Text(ui("Продолжить", "Continue")) }
+                    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { BearMascot(Modifier.size(220.dp), emotion = if (score >= graded * 0.7f) 8 else 13) }
+                    Text(ui("Урок пройден!", "Lesson complete!"), fontSize = 29.sp, fontWeight = FontWeight.ExtraBold, color = Ink, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                    Surface(color = CardRaised, shape = RoundedCornerShape(22.dp), modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text(score.toString() + " / " + graded + " " + ui("правильных ответов", "correct answers"), color = Ink, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                            LinearProgressIndicator(progress = { score.toFloat() / graded.coerceAtLeast(1) }, modifier = Modifier.fillMaxWidth().height(9.dp).clip(RoundedCornerShape(20.dp)), color = Blue, trackColor = Line)
+                            Text("+${score * 5} XP", color = Gold, fontWeight = FontWeight.ExtraBold, fontSize = 23.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                        }
+                    }
+                    Text(ui("Ты изучал слова в контексте, строил предложения, читал и тренировался говорить.", "You learned words in context, built sentences, read, and practiced speaking."), color = Muted, textAlign = TextAlign.Center)
+                    Button(onClick = { onComplete(score, graded) }, modifier = Modifier.fillMaxWidth().height(54.dp).background(Brush.horizontalGradient(listOf(Color(0xFF8E6BFF), Color(0xFFB17CFF))), RoundedCornerShape(18.dp)), shape = RoundedCornerShape(18.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)) { Text(ui("Продолжить", "Continue"), fontWeight = FontWeight.Bold) }
                 } else {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = onExit) { Icon(Icons.Default.ArrowBack, contentDescription = ui("Закрыть урок", "Close lesson"), tint = Ink) }
-                        Column(Modifier.weight(1f)) {
-                            Text(if (placement) ui("Проверка уровня", "Placement check") else course.name, fontWeight = FontWeight.Bold, color = Ink)
-                            Text(ui("Шаг ", "Step ") + (index + 1) + ui(" из ", " of ") + tasks.size, color = Muted, fontSize = 12.sp)
-                        }
-                        Text((index * 100 / tasks.size).toString() + "%", color = Blue, fontWeight = FontWeight.Bold)
+                        IconButton(onClick = onExit, modifier = Modifier.size(38.dp)) { Icon(Icons.Default.Close, contentDescription = ui("Закрыть урок", "Close lesson"), tint = Muted, modifier = Modifier.size(27.dp)) }
+                        Spacer(Modifier.width(8.dp))
+                        LinearProgressIndicator(progress = { (index + 1).toFloat() / tasks.size }, modifier = Modifier.weight(1f).height(11.dp).clip(CircleShape), color = Blue, trackColor = Line, strokeCap = androidx.compose.ui.graphics.StrokeCap.Round)
+                        Spacer(Modifier.width(12.dp))
+                        Text("${index + 1} / ${tasks.size}", color = Ink, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                     }
-                    LinearProgressIndicator(progress = { index.toFloat() / tasks.size }, modifier = Modifier.fillMaxWidth().height(8.dp), color = Blue, trackColor = Line)
-                    Surface(color = CardRaised, shape = RoundedCornerShape(12.dp)) {
-                        Text(task.title.uppercase(), Modifier.fillMaxWidth().padding(11.dp), color = Blue, fontWeight = FontWeight.Bold, fontSize = 11.sp)
-                    }
+                    Text(if (placement) ui("Проверка уровня", "Placement check") else task.title, fontSize = 22.sp, lineHeight = 28.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
                     when (task.kind) {
                         "intro" -> {
                             Text(task.prompt, fontSize = 22.sp, lineHeight = 29.sp, fontWeight = FontWeight.Bold, color = Ink)
                             Text(task.explanation, color = Muted)
                             Text(ui("Новые выражения", "New expressions"), color = Ink, fontWeight = FontWeight.Bold)
                             course.firstUnit.vocabulary.take(4).forEach { w ->
-                                Surface(color = CardRaised, shape = RoundedCornerShape(13.dp), modifier = Modifier.fillMaxWidth()) {
+                                Surface(color = CardRaised, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
                                     Column(Modifier.padding(13.dp)) {
                                         Text(w.term, color = Ink, fontWeight = FontWeight.Bold)
                                         Text(w.meaning, color = Blue)
@@ -160,8 +167,8 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                         }
                         "listen" -> {
                             Text(task.prompt, fontSize = 19.sp, fontWeight = FontWeight.SemiBold, color = Ink)
-                            Surface(color = CardRaised, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
-                                Row(Modifier.padding(17.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Surface(color = CardRaised, shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth()) {
+                                Row(Modifier.padding(19.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.VolumeUp, contentDescription = null, tint = Blue)
                                     Spacer(Modifier.width(10.dp))
                                     Column {
@@ -222,11 +229,23 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                             Text(ui("Найдено пар: ", "Matched pairs: ") + matches.size + " / " + task.pairs.size, color = Muted, fontSize = 12.sp)
                         }
                         "choice", "reading" -> {
-                            Text(task.prompt, fontSize = 19.sp, lineHeight = 27.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+                            if (task.kind == "choice") {
+                                Surface(color = CardRaised, shape = RoundedCornerShape(22.dp), modifier = Modifier.fillMaxWidth()) {
+                                    Row(Modifier.padding(horizontal = 18.dp, vertical = 25.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Text(task.prompt, color = Ink, fontSize = 19.sp, fontWeight = FontWeight.SemiBold, lineHeight = 26.sp, modifier = Modifier.weight(1f))
+                                        Icon(Icons.Default.VolumeUp, null, tint = Blue, modifier = Modifier.size(29.dp))
+                                    }
+                                }
+                            } else {
+                                Text(task.prompt, fontSize = 19.sp, lineHeight = 27.sp, fontWeight = FontWeight.SemiBold, color = Ink)
+                            }
                             task.options.forEach { option ->
-                                OutlinedButton(onClick = { if (!checked) choice = option }, modifier = Modifier.fillMaxWidth(),
+                                OutlinedButton(onClick = { if (!checked) choice = option }, modifier = Modifier.fillMaxWidth().heightIn(min = 54.dp),
+                                    shape = RoundedCornerShape(17.dp),
+                                    border = androidx.compose.foundation.BorderStroke(if (choice == option) 2.dp else 1.dp, if (choice == option) Blue else Line),
                                     colors = ButtonDefaults.outlinedButtonColors(containerColor = if (choice == option) CardRaised else Card)) {
-                                    Text(option, color = Ink, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Start)
+                                    Text(option, color = Ink, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Start, fontSize = 16.sp)
+                                    if (choice == option) Icon(Icons.Default.Check, null, tint = Blue)
                                 }
                             }
                         }
@@ -246,8 +265,8 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                         }
                     }
                     if (checked) {
-                        Surface(color = CardRaised, shape = RoundedCornerShape(14.dp)) {
-                            Column(Modifier.fillMaxWidth().padding(13.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Surface(color = CardRaised, shape = RoundedCornerShape(18.dp)) {
+                            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Text(if (correct) ui("Верно!", "Correct!") else ui("Разберём ответ", "Review your answer"), color = if (correct) Green else Gold, fontWeight = FontWeight.Bold)
                                 if (!correct && task.answer.isNotBlank()) Text(ui("Правильный вариант: ", "Correct answer: ") + task.answer, color = Ink)
                                 if (task.explanation.isNotBlank()) Text(task.explanation, color = Muted, fontSize = 12.sp)
@@ -279,7 +298,7 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                             else -> "Следующий этап"
                         })
                     }
-                    Text(ui("После каждого упражнения разбираем результат и закрепляем материал.", "Review each result and reinforce what you learned."), color = Muted, fontSize = 11.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                    Text(ui("Lingo · маленькие шаги каждый день", "Lingo · little steps every day"), color = Muted, fontSize = 11.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                 }
             }
         }
@@ -360,7 +379,7 @@ internal fun OnboardingScreen(
         Spacer(Modifier.height(18.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             if (step > 0) OutlinedButton(onClick = { step-- }, modifier = Modifier.weight(1f)) { Text(ui("Назад", "Back")) }
-            Button(onClick = { if (step < 3) step++ else onFinish(courseId, goal, level) }, modifier = Modifier.weight(2f)) { Text(if (step < 3) ui("Продолжить", "Continue") else ui("Начать обучение", "Start learning")) }
+            Button(onClick = { if (step < 3) step++ else onFinish(courseId, goal, level) }, modifier = Modifier.weight(2f).height(52.dp).background(Brush.horizontalGradient(listOf(Color(0xFF8E6BFF), Color(0xFFB17CFF))), RoundedCornerShape(16.dp)), shape = RoundedCornerShape(16.dp), colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)) { Text(if (step < 3) ui("Продолжить", "Continue") else ui("Начать обучение", "Start learning")) }
         }
     }
 }
