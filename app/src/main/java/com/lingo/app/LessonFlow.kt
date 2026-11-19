@@ -80,9 +80,9 @@ private fun lessonTasks(course: LanguageCourse, unit: LessonUnit, placement: Boo
     )
 }
 @Composable
-internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -> Unit, onComplete: (Int, Int) -> Unit) {
-    val tasks = remember(course.id, placement) { lessonTasks(course, placement) }
-    val graded = tasks.count { it.kind != "intro" }
+internal fun LessonFlow(course: LanguageCourse, unit: LessonUnit, placement: Boolean, onExit: () -> Unit, onComplete: (Int, Int) -> Unit) {
+    val tasks = remember(course.id, unit.title, placement) { lessonTasks(course, unit, placement) }
+    val graded = tasks.count { it.kind != "intro" && it.kind != "learn" }
     var index by remember(course.id, placement) { mutableIntStateOf(0) }
     var input by remember(course.id, placement) { mutableStateOf("") }
     var choice by remember(course.id, placement) { mutableStateOf("") }
@@ -146,7 +146,7 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                             Text(task.prompt, fontSize = 22.sp, lineHeight = 29.sp, fontWeight = FontWeight.Bold, color = Ink)
                             Text(task.explanation, color = Muted)
                             Text(ui("Новые выражения", "New expressions"), color = Ink, fontWeight = FontWeight.Bold)
-                            course.firstUnit.vocabulary.take(4).forEach { w ->
+                            unit.vocabulary.forEach { w ->
                                 Surface(color = CardRaised, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
                                     Column(Modifier.padding(13.dp)) {
                                         Text(w.term, color = Ink, fontWeight = FontWeight.Bold)
@@ -156,12 +156,25 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                                 }
                             }
                             Text(ui("Короткий диалог", "Short dialogue"), color = Ink, fontWeight = FontWeight.Bold)
-                            course.firstUnit.dialogue.take(2).forEach { d ->
+                            unit.dialogue.take(2).forEach { d ->
                                 Surface(color = CardRaised, shape = RoundedCornerShape(13.dp), modifier = Modifier.fillMaxWidth()) {
                                     Column(Modifier.padding(12.dp)) {
                                         Text(d.speaker, color = Blue, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                                         Text(d.text, color = Ink)
                                         Text(d.translation, color = Muted, fontSize = 12.sp)
+                                    }
+                                }
+                            }
+                        }
+                        "learn" -> {
+                            Text(task.prompt, fontSize = 18.sp, lineHeight = 25.sp, color = Muted)
+                            unit.vocabulary.forEach { word ->
+                                Surface(color = CardRaised, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
+                                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                        Text(word.term, color = Ink, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                        Text(word.meaning, color = Blue, fontWeight = FontWeight.SemiBold)
+                                        Text(word.example, color = Ink, fontSize = 14.sp)
+                                        if (word.note.isNotBlank()) Text(word.note, color = Muted, fontSize = 12.sp)
                                     }
                                 }
                             }
@@ -277,13 +290,13 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                     Button(
                         onClick = {
                             when {
-                                task.kind == "intro" -> next()
+                                task.kind == "intro" || task.kind == "learn" -> next()
                                 !checked -> check()
                                 !correct -> { checked = false; input = ""; choice = ""; tiles = emptyList() }
                                 else -> next()
                             }
                         },
-                        enabled = task.kind == "intro" || checked || when (task.kind) {
+                        enabled = task.kind == "intro" || task.kind == "learn" || checked || when (task.kind) {
                             "listen" -> tiles.isNotEmpty()
                             "match" -> matches.size == task.pairs.size
                             "choice", "reading" -> choice.isNotBlank()
@@ -292,7 +305,8 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(when {
-                            task.kind == "intro" -> "Перейти к практике"
+                            task.kind == "intro" -> "Изучить слова"
+                            task.kind == "learn" -> "Начать практику"
                             !checked -> "Проверить ответ"
                             !correct -> "Исправить и повторить"
                             index == tasks.lastIndex -> "Завершить урок"
