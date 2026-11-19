@@ -11,6 +11,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.background
@@ -67,6 +68,25 @@ private val Blue = Color(0xFF4D9BFA)
 private val Txt = Color(0xFFF0F4FA)
 private val Muted = Color(0xFF8996A5)
 private val StageFont = FontFamily(Font(R.font.nomor1))
+private val StageTypography = Typography().let { t ->
+    t.copy(
+        displayLarge = t.displayLarge.copy(fontFamily = StageFont),
+        displayMedium = t.displayMedium.copy(fontFamily = StageFont),
+        displaySmall = t.displaySmall.copy(fontFamily = StageFont),
+        headlineLarge = t.headlineLarge.copy(fontFamily = StageFont),
+        headlineMedium = t.headlineMedium.copy(fontFamily = StageFont),
+        headlineSmall = t.headlineSmall.copy(fontFamily = StageFont),
+        titleLarge = t.titleLarge.copy(fontFamily = StageFont),
+        titleMedium = t.titleMedium.copy(fontFamily = StageFont),
+        titleSmall = t.titleSmall.copy(fontFamily = StageFont),
+        bodyLarge = t.bodyLarge.copy(fontFamily = StageFont),
+        bodyMedium = t.bodyMedium.copy(fontFamily = StageFont),
+        bodySmall = t.bodySmall.copy(fontFamily = StageFont),
+        labelLarge = t.labelLarge.copy(fontFamily = StageFont),
+        labelMedium = t.labelMedium.copy(fontFamily = StageFont),
+        labelSmall = t.labelSmall.copy(fontFamily = StageFont)
+    )
+}
 
 data class CueTrack(val uri: String, val name: String, val slot: Int, val keyCode: Int = 0, val touchAction: String = "PLAY")
 
@@ -89,7 +109,7 @@ class MainActivity : ComponentActivity() {
         } catch (_: Exception) { }
         setContent {
             MaterialTheme(colorScheme = darkColorScheme(primary = Blue, background = Bg,
-                surface = Panel, onBackground = Txt, onSurface = Txt), typography = Typography(defaultFontFamily = StageFont)) {
+                surface = Panel, onBackground = Txt, onSurface = Txt), typography = StageTypography) {
                 StageCueScreen(tracks, player) {
                     val arr = JSONArray()
                     tracks.forEach { t -> arr.put(JSONObject().put("uri", t.uri)
@@ -102,7 +122,7 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() { player.release(); super.onDestroy() }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun StageCueScreen(tracks: MutableList<CueTrack>, player: ExoPlayer, save: () -> Unit) {
     val context = LocalContext.current
