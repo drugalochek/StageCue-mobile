@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val prefs = getSharedPreferences("lingo_progress", MODE_PRIVATE)
-        AppLanguage.setPreference(prefs.getString("app_language", "auto") ?: "auto")
+        AppLanguage.changePreference(prefs.getString("app_language", "auto") ?: "auto")
         AppLanguage.updateSystemLanguage(resources.configuration.locales[0]?.language ?: Locale.getDefault().language)
         setContent {
             MaterialTheme(colorScheme = darkColorScheme(primary = Blue, background = Pale, surface = Card, onSurface = Ink, secondary = Gold, onPrimary = Color.White, onBackground = Ink, onSurfaceVariant = Muted)) {
@@ -97,7 +97,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
     var completedLessons by remember { mutableIntStateOf(0) }
     var languageMenuOpen by remember { mutableStateOf(false) }
     var appLanguageMenuOpen by remember { mutableStateOf(false) }
-    LaunchedEffect(initialAppLanguage) { AppLanguage.setPreference(initialAppLanguage) }
+    LaunchedEffect(initialAppLanguage) { AppLanguage.changePreference(initialAppLanguage) }
     val course = CourseCatalog.find(courseId)
     val unit = course.firstUnit
     val questions = unit.quiz
@@ -242,7 +242,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                     item { BearSpeech(ui("Собирай награды за занятия. Витрина пока пополняется.", "Earn rewards by studying. More items are coming soon.")) }
                 }
                 else -> {
-                    item { AppLanguageSettingsCard(expanded = appLanguageMenuOpen, onExpandedChange = { appLanguageMenuOpen = it }, onSelect = { AppLanguage.setPreference(it); onSaveAppLanguage(it); appLanguageMenuOpen = false }) }
+                    item { AppLanguageSettingsCard(expanded = appLanguageMenuOpen, onExpandedChange = { appLanguageMenuOpen = it }, onSelect = { AppLanguage.changePreference(it); onSaveAppLanguage(it); appLanguageMenuOpen = false }) }
                     item { BearSpeech(ui("Твои языки, страны и главы курсов. Выбирай, куда двигаться дальше.", "Your languages, countries, and course chapters. Choose where to go next.")) }
                     item { Text(ui("Мои курсы", "My courses"), color = Ink, fontWeight = FontWeight.Bold, fontSize = 19.sp) }
                     item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it; onSaveSettings(it, dailyGoal) }) }
