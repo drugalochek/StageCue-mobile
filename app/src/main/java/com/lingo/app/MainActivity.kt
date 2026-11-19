@@ -55,7 +55,10 @@ class MainActivity : ComponentActivity() {
         AppLanguage.changePreference(prefs.getString("app_language", "auto") ?: "auto")
         AppLanguage.updateSystemLanguage(resources.configuration.locales[0]?.language ?: Locale.getDefault().language)
         setContent {
-            MaterialTheme(colorScheme = darkColorScheme(primary = Blue, background = Pale, surface = Card, onSurface = Ink, secondary = Gold, onPrimary = Color.White, onBackground = Ink, onSurfaceVariant = Muted)) {
+            MaterialTheme(
+                colorScheme = darkColorScheme(primary = Blue, background = Pale, surface = Card, onSurface = Ink, secondary = Gold, onPrimary = Color.White, onBackground = Ink, onSurfaceVariant = Muted, primaryContainer = CardRaised, secondaryContainer = CardRaised, surfaceVariant = CardRaised, outline = Line),
+                shapes = Shapes(small = RoundedCornerShape(12.dp), medium = RoundedCornerShape(20.dp), large = RoundedCornerShape(28.dp))
+            ) {
                 LingoApp(
                     initialStage = prefs.getInt("stage", 1),
                     initialXp = prefs.getInt("xp", 0),
@@ -132,7 +135,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
     Scaffold(
         containerColor = Pale,
         bottomBar = {
-            NavigationBar(containerColor = Card, tonalElevation = 0.dp) {
+            NavigationBar(containerColor = Pale, tonalElevation = 0.dp, windowInsets = WindowInsets(0.dp)) {
                 listOf("Учиться", "Квесты", "Словарь", "Магазин", "Профиль").forEach { item ->
                     NavigationBarItem(
                         selected = tab == item,
@@ -147,7 +150,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                             }, contentDescription = item)
                         },
                         label = { Text(when(item) { "Учиться" -> ui("Учиться", "Learn"); "Квесты" -> ui("Квесты", "Quests"); "Словарь" -> ui("Словарь", "Words"); "Магазин" -> ui("Магазин", "Shop"); else -> ui("Профиль", "Profile") }, fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(selectedIconColor = Blue, indicatorColor = Color(0xFFE9EDFF), selectedTextColor = Blue)
+                        colors = NavigationBarItemDefaults.colors(selectedIconColor = Blue, indicatorColor = CardRaised, selectedTextColor = Blue)
                     )
                 }
             }
@@ -164,7 +167,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                         Text("LINGO", fontSize = 13.sp, color = Blue, fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
                         Text(when (tab) { "Учиться" -> ui("Продолжим?", "Keep learning?") ; "Квесты" -> ui("Твои квесты", "Your quests"); "Словарь" -> ui("Твои слова", "Your vocabulary"); "Магазин" -> ui("Магазин наград", "Rewards shop"); else -> ui("Профиль", "Profile") }, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
                     }
-                    Surface(shape = RoundedCornerShape(16.dp), color = Color.White) {
+                    Surface(shape = RoundedCornerShape(16.dp), color = CardRaised) {
                         Row(Modifier.padding(horizontal = 13.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.LocalFireDepartment, null, tint = Color(0xFFFF934D), modifier = Modifier.size(20.dp))
                             Spacer(Modifier.width(5.dp))
