@@ -35,19 +35,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-internal val Ink = Color(0xFF20242C)
-internal val Muted = Color(0xFF858B96)
-internal val Blue = Color(0xFF526FE5)
-internal val Pale = Color(0xFFF4F6FB)
-internal val Green = Color(0xFF58B889)
-internal val Line = Color(0xFFE8EAF0)
+internal val Ink = Color(0xFFF5F1FF)
+internal val Muted = Color(0xFFB5AECF)
+internal val Blue = Color(0xFF9B79FF)
+internal val Pale = Color(0xFF0D0B20)
+internal val Green = Color(0xFF59D9B0)
+internal val Line = Color(0xFF39314F)
+internal val Card = Color(0xFF1A1732)
+internal val CardRaised = Color(0xFF252044)
+internal val Gold = Color(0xFFFFC86B)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val prefs = getSharedPreferences("lingo_progress", MODE_PRIVATE)
         setContent {
-            MaterialTheme(colorScheme = lightColorScheme(primary = Blue, background = Pale, surface = Color.White, onSurface = Ink)) {
+            MaterialTheme(colorScheme = darkColorScheme(primary = Blue, background = Pale, surface = Card, onSurface = Ink, secondary = Gold, onPrimary = Color.White, onBackground = Ink, onSurfaceVariant = Muted)) {
                 LingoApp(
                     initialStage = prefs.getInt("stage", 1),
                     initialXp = prefs.getInt("xp", 0),
@@ -115,8 +118,8 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
     Scaffold(
         containerColor = Pale,
         bottomBar = {
-            NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                listOf("Учиться", "Квесты", "Словарь", "Профиль").forEach { item ->
+            NavigationBar(containerColor = Card, tonalElevation = 0.dp) {
+                listOf("Учиться", "Квесты", "Словарь", "Магазин", "Профиль").forEach { item ->
                     NavigationBarItem(
                         selected = tab == item,
                         onClick = { tab = item },
@@ -125,6 +128,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                                 "Учиться" -> Icons.Default.School
                                 "Квесты" -> Icons.Default.Flag
                                 "Словарь" -> Icons.Default.MenuBook
+                                "Магазин" -> Icons.Default.ShoppingBag
                                 else -> Icons.Default.Person
                             }, contentDescription = item)
                         },
@@ -143,8 +147,8 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
             item {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text("LINGO", fontSize = 13.sp, color = Muted, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-                        Text(when (tab) { "Учиться" -> "Продолжим?" ; "Квесты" -> "Твои квесты"; "Словарь" -> "Твои слова"; else -> "Профиль" }, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
+                        Text("LINGO", fontSize = 13.sp, color = Blue, fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
+                        Text(when (tab) { "Учиться" -> "Продолжим?" ; "Квесты" -> "Твои квесты"; "Словарь" -> "Твои слова"; "Магазин" -> "Магазин наград"; else -> "Профиль" }, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
                     }
                     Surface(shape = RoundedCornerShape(16.dp), color = Color.White) {
                         Row(Modifier.padding(horizontal = 13.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -163,7 +167,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                 "Учиться" -> {
                     item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it; question = 0; selected = -1; feedback = false; onSaveSettings(it, dailyGoal) }) }
                     item {
-                        Surface(color = Color.White, shape = RoundedCornerShape(22.dp)) {
+                        Surface(color = Card, shape = RoundedCornerShape(22.dp)) {
                             Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                     Text(course.name.uppercase(), color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
@@ -214,6 +218,14 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                     item { Text("Новые слова появятся здесь после уроков.", color = Muted, fontSize = 15.sp) }
                                         item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it }) }
                     items(unit.vocabulary.size) { index -> val word = unit.vocabulary[index]; WordCard(word.term, word.meaning, word.note) }
+                }
+                "Магазин" -> {
+                    item { StoreHeader(gems = 120) }
+                    item { StoreItemCard("Звёздная рамка", "Оформление профиля", "80", "✦") }
+                    item { StoreItemCard("Ночная тема", "Тёмно-фиолетовый фон профиля", "100", "☾") }
+                    item { StoreItemCard("Золотая корона", "Праздничный аксессуар маскота", "150", "♛") }
+                    item { StoreItemCard("Эмоция: восторг", "Новая реакция медведя", "60", "★") }
+                    item { BearSpeech("Собирай награды за занятия. Витрина пока пополняется.") }
                 }
                 else -> {
                     item { BearSpeech("Твои языки, страны и главы курсов. Выбирай, куда двигаться дальше.") }
@@ -349,7 +361,7 @@ private fun GrammarCard(point: GrammarPoint) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
             Text("КАК СТРОИТЬ ФРАЗЫ", color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             Text(point.title, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Surface(color = Pale, shape = RoundedCornerShape(10.dp)) {
+            Surface(color = CardRaised, shape = RoundedCornerShape(10.dp)) {
                 Text(point.pattern, Modifier.fillMaxWidth().padding(12.dp), color = Blue, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
             }
             Text(point.explanation, color = Muted, fontSize = 14.sp, lineHeight = 21.sp)
@@ -401,7 +413,7 @@ private fun StageCard(stage: Int, onStart: () -> Unit, onSkip: () -> Unit) {
     Surface(color = Color.White, shape = RoundedCornerShape(20.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(color = Color(0xFFE9EDFF), shape = RoundedCornerShape(12.dp)) {
+                Surface(color = CardRaised, shape = RoundedCornerShape(12.dp)) {
                     Icon(Icons.Default.School, null, tint = Blue, modifier = Modifier.padding(11.dp).size(22.dp))
                 }
                 Spacer(Modifier.width(11.dp))
@@ -494,6 +506,48 @@ private fun QuestCard(title: String, description: String, progress: String, icon
     Surface(color = Color.White, shape = RoundedCornerShape(16.dp)) {
         Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(label, color = Muted, modifier = Modifier.weight(1f)); Text(value, color = Ink, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+
+@Composable
+private fun StoreHeader(gems: Int) {
+    Surface(color = CardRaised, shape = RoundedCornerShape(22.dp)) {
+        Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text("КОЛЛЕКЦИЯ LINGO", color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+                Text("Укрась свой профиль", color = Ink, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+                Text("Предметы и реакции для маскота", color = Muted, fontSize = 12.sp)
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("✦", color = Gold, fontSize = 30.sp)
+                Text("$gems", color = Gold, fontWeight = FontWeight.Bold)
+                Text("кристаллов", color = Muted, fontSize = 10.sp)
+            }
+        }
+    }
+}
+
+@Composable
+private fun StoreItemCard(name: String, description: String, price: String, symbol: String) {
+    var purchased by remember { mutableStateOf(false) }
+    Surface(color = Card, shape = RoundedCornerShape(20.dp)) {
+        Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
+            Surface(color = CardRaised, shape = RoundedCornerShape(15.dp)) {
+                Box(Modifier.size(58.dp), contentAlignment = Alignment.Center) {
+                    Text(symbol, color = Gold, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            Spacer(Modifier.width(13.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(name, color = Ink, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text(description, color = Muted, fontSize = 11.sp)
+                Text("✦ $price", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+            Button(onClick = { purchased = true }, enabled = !purchased, shape = RoundedCornerShape(12.dp), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)) {
+                Text(if (purchased) "Выбрано" else "Открыть", fontSize = 11.sp)
+            }
         }
     }
 }
