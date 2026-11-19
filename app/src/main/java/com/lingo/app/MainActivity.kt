@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.util.Locale
 
 internal val Ink = Color(0xFFF5F1FF)
 internal val Muted = Color(0xFFB5AECF)
@@ -51,6 +52,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val prefs = getSharedPreferences("lingo_progress", MODE_PRIVATE)
+        AppLanguage.setPreference(prefs.getString("app_language", "auto") ?: "auto")
+        AppLanguage.updateSystemLanguage(resources.configuration.locales[0]?.language ?: Locale.getDefault().language)
         setContent {
             MaterialTheme(colorScheme = darkColorScheme(primary = Blue, background = Pale, surface = Card, onSurface = Ink, secondary = Gold, onPrimary = Color.White, onBackground = Ink, onSurfaceVariant = Muted)) {
                 LingoApp(
@@ -59,17 +62,24 @@ class MainActivity : ComponentActivity() {
                     initialStreak = prefs.getInt("streak", 1),
                     initialCourse = prefs.getString("course", "en") ?: "en",
                     initialGoal = prefs.getInt("daily_goal", 10),
+                    initialAppLanguage = prefs.getString("app_language", "auto") ?: "auto",
                     onboardingDone = prefs.getBoolean("onboarding_done", false),
                     onSave = { stage, xp -> prefs.edit().putInt("stage", stage).putInt("xp", xp).apply() },
-                    onSaveSettings = { course, goal -> prefs.edit().putString("course", course).putInt("daily_goal", goal).putBoolean("onboarding_done", true).apply() }
+                    onSaveSettings = { course, goal -> prefs.edit().putString("course", course).putInt("daily_goal", goal).putBoolean("onboarding_done", true).apply() },
+                    onSaveAppLanguage = { language -> prefs.edit().putString("app_language", language).apply() }
                 )
             }
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        AppLanguage.updateSystemLanguage(resources.configuration.locales[0]?.language ?: Locale.getDefault().language)
+    }
 }
 
 @Composable
-private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, initialCourse: String, initialGoal: Int, onboardingDone: Boolean, onSave: (Int, Int) -> Unit, onSaveSettings: (String, Int) -> Unit) {
+private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, initialCourse: String, initialGoal: Int, initialAppLanguage: String, onboardingDone: Boolean, onSave: (Int, Int) -> Unit, onSaveSettings: (String, Int) -> Unit, onSaveAppLanguage: (String) -> Unit) {
     var stage by remember { mutableIntStateOf(initialStage.coerceAtLeast(1)) }
     var xp by remember { mutableIntStateOf(initialXp) }
     var streak by remember { mutableIntStateOf(initialStreak) }
@@ -86,6 +96,8 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
     var setupDone by remember { mutableStateOf(onboardingDone) }
     var completedLessons by remember { mutableIntStateOf(0) }
     var languageMenuOpen by remember { mutableStateOf(false) }
+    var appLanguageMenuOpen by remember { mutableStateOf(false) }
+    LaunchedEffect(initialAppLanguage) { AppLanguage.setPreference(initialAppLanguage) }
     val course = CourseCatalog.find(courseId)
     val unit = course.firstUnit
     val questions = unit.quiz
@@ -134,7 +146,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                                 else -> Icons.Default.Person
                             }, contentDescription = item)
                         },
-                        label = { Text(item, fontSize = 11.sp) },
+                        label = { Text(when(item) { "Учиться" -> ui("Учиться", "Learn"); "Квесты" -> ui("Квесты", "Quests"); "Словарь" -> ui("Словарь", "Words"); "Магазин" -> ui("Магазин", "Shop"); else -> ui("Профиль", "Profile") }, fontSize = 11.sp) },
                         colors = NavigationBarItemDefaults.colors(selectedIconColor = Blue, indicatorColor = Color(0xFFE9EDFF), selectedTextColor = Blue)
                     )
                 }
@@ -150,7 +162,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("LINGO", fontSize = 13.sp, color = Blue, fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
-                        Text(when (tab) { "Учиться" -> "Продолжим?" ; "Квесты" -> "Твои квесты"; "Словарь" -> "Твои слова"; "Магазин" -> "Магазин наград"; else -> "Профиль" }, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
+                        Text(when (tab) { "Учиться" -> ui("Продолжим?", "Keep learning?") ; "Квесты" -> ui("Твои квесты", "Your quests"); "Словарь" -> ui("Твои слова", "Your vocabulary"); "Магазин" -> ui("Магазин наград", "Rewards shop"); else -> ui("Профиль", "Profile") }, fontSize = 27.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
                     }
                     Surface(shape = RoundedCornerShape(16.dp), color = Color.White) {
                         Row(Modifier.padding(horizontal = 13.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -184,8 +196,8 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                     }
                     item {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Твой путь", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Ink, modifier = Modifier.weight(1f))
-                            Text("Этапы", color = Muted, fontSize = 12.sp)
+                            Text(ui("Твой путь", "Your path"), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Ink, modifier = Modifier.weight(1f))
+                            Text(ui("Этапы", "Stages"), color = Muted, fontSize = 12.sp)
                         }
                     }
                     item {
@@ -196,14 +208,14 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                     items(CourseCatalog.grammar(course.id).size) { index -> GrammarCard(point = CourseCatalog.grammar(course.id)[index]) }
                     CourseCatalog.writing(course.id)?.let { task -> item { WritingCard(task = task) } }
                     item {
-                        Text("Ежедневная цель", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Ink)
+                        Text(ui("Ежедневная цель", "Daily goal"), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Ink)
                         Surface(color = Card, shape = RoundedCornerShape(18.dp)) {
                             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.CheckCircle, null, tint = Green)
                                     Spacer(Modifier.width(8.dp))
-                                    Text("Занимайся $dailyGoal минут", fontWeight = FontWeight.SemiBold, color = Ink, modifier = Modifier.weight(1f))
-                                    Text("0 / $dailyGoal мин", color = Muted, fontSize = 12.sp)
+                                    Text(ui("Занимайся $dailyGoal минут", "Study for $dailyGoal minutes"), fontWeight = FontWeight.SemiBold, color = Ink, modifier = Modifier.weight(1f))
+                                    Text(if (AppLanguage.isEnglish) "0 / $dailyGoal min" else "0 / $dailyGoal мин", color = Muted, fontSize = 12.sp)
                                 }
                                 LinearProgressIndicator(progress = { 0.2f }, modifier = Modifier.fillMaxWidth().height(7.dp), color = Green, trackColor = Line)
                             }
@@ -214,10 +226,10 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                     item { QuestCard("Первый контакт", "Пройди один урок сегодня", "0 / 1", Icons.Default.ChatBubbleOutline) }
                     item { QuestCard("Разминка для памяти", "Повтори 5 знакомых слов", "0 / 5", Icons.Default.Psychology) }
                     item { QuestCard("Не сбавляй темп", "Заработай 30 XP", "$xp / 30 XP", Icons.Default.Bolt) }
-                    item { BearSpeech("У тебя три квеста. Даже я столько дел одновременно не планировал.") }
+                    item { BearSpeech(ui("У тебя три квеста. Даже я столько дел одновременно не планировал.", "Three quests. Even I would not plan that many things at once.")) }
                 }
                 "Словарь" -> {
-                    item { Text("Новые слова появятся здесь после уроков.", color = Muted, fontSize = 15.sp) }
+                    item { Text(ui("Новые слова появятся здесь после уроков.", "New words will appear here after your lessons."), color = Muted, fontSize = 15.sp) }
                                         item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it }) }
                     items(unit.vocabulary.size) { index -> val word = unit.vocabulary[index]; WordCard(word.term, word.meaning, word.note) }
                 }
@@ -227,11 +239,12 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                     item { StoreItemCard("Ночная тема", "Тёмно-фиолетовый фон профиля", "100", "☾") }
                     item { StoreItemCard("Золотая корона", "Праздничный аксессуар маскота", "150", "♛") }
                     item { StoreItemCard("Эмоция: восторг", "Новая реакция медведя", "60", "★") }
-                    item { BearSpeech("Собирай награды за занятия. Витрина пока пополняется.") }
+                    item { BearSpeech(ui("Собирай награды за занятия. Витрина пока пополняется.", "Earn rewards by studying. More items are coming soon.")) }
                 }
                 else -> {
-                    item { BearSpeech("Твои языки, страны и главы курсов. Выбирай, куда двигаться дальше.") }
-                    item { Text("Мои курсы", color = Ink, fontWeight = FontWeight.Bold, fontSize = 19.sp) }
+                    item { AppLanguageSettingsCard(expanded = appLanguageMenuOpen, onExpandedChange = { appLanguageMenuOpen = it }, onSelect = { AppLanguage.setPreference(it); onSaveAppLanguage(it); appLanguageMenuOpen = false }) }
+                    item { BearSpeech(ui("Твои языки, страны и главы курсов. Выбирай, куда двигаться дальше.", "Your languages, countries, and course chapters. Choose where to go next.")) }
+                    item { Text(ui("Мои курсы", "My courses"), color = Ink, fontWeight = FontWeight.Bold, fontSize = 19.sp) }
                     item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it; onSaveSettings(it, dailyGoal) }) }
                     items(CourseCatalog.courses.size) { index ->
                         val item = CourseCatalog.courses[index]
@@ -243,16 +256,16 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                                     Text(item.name, color = Ink, fontWeight = FontWeight.Bold)
                                     Text(item.nativeName + " · " + item.firstUnit.title, color = Muted, fontSize = 12.sp)
                                 }
-                                Text(if (item.id == courseId) "Активен" else "Открыть", color = Blue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text(if (item.id == courseId) ui("Активен", "Active") else ui("Открыть", "Open"), color = Blue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
-                    item { Text("Главы · " + course.name, color = Ink, fontWeight = FontWeight.Bold, fontSize = 18.sp) }
+                    item { Text(ui("Главы · ", "Chapters · ") + course.name, color = Ink, fontWeight = FontWeight.Bold, fontSize = 18.sp) }
                     items(course.units.size) { index ->
                         val chapter = course.units[index]
                         Surface(color = Card, shape = RoundedCornerShape(14.dp)) {
                             Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text("ГЛАВА ${index + 1}", color = Blue, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Text(ui("ГЛАВА", "CHAPTER") + " ${index + 1}", color = Blue, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                 Spacer(Modifier.width(10.dp))
                                 Column(Modifier.weight(1f)) {
                                     Text(chapter.title, color = Ink, fontWeight = FontWeight.SemiBold)
@@ -262,10 +275,10 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                             }
                         }
                     }
-                    item { StatCard("Ежедневная цель", "$dailyGoal минут") }
-                    item { StatCard("Всего опыта", "$xp XP") }
-                    item { StatCard("Серия занятий", "$streak дней") }
-                    item { StatCard("Открытый этап", "$stage") }
+                    item { StatCard(ui("Ежедневная цель", "Daily goal"), if (AppLanguage.isEnglish) "$dailyGoal minutes" else "$dailyGoal минут") }
+                    item { StatCard(ui("Всего опыта", "Total XP"), "$xp XP") }
+                    item { StatCard(ui("Серия занятий", "Streak"), if (AppLanguage.isEnglish) "$streak days" else "$streak дней") }
+                    item { StatCard(ui("Открытый этап", "Current stage"), "$stage") }
                 }
             }
         }
@@ -484,7 +497,7 @@ private fun StageCard(stage: Int, onStart: () -> Unit, onSkip: () -> Unit) {
                 }
                 Spacer(Modifier.width(11.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("ЭТАП $stage", color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                    Text(ui("ЭТАП", "STAGE") + " $stage", color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                     Text("Знакомство и приветствия", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                 }
                 Icon(Icons.Default.LockOpen, null, tint = Green)
@@ -503,10 +516,10 @@ private fun StageCard(stage: Int, onStart: () -> Unit, onSkip: () -> Unit) {
                 }
             }
             Button(onClick = onStart, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(13.dp)) {
-                Text("Продолжить урок", fontWeight = FontWeight.Bold)
+                Text(ui("Продолжить урок", "Continue lesson"), fontWeight = FontWeight.Bold)
             }
             OutlinedButton(onClick = onSkip, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(13.dp)) {
-                Text("Проверить знания и пропустить этап")
+                Text(ui("Проверить знания и пропустить этап", "Test out of this stage"))
             }
         }
     }
