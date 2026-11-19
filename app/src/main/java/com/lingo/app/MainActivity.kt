@@ -295,8 +295,8 @@ private fun BearMascot(modifier: Modifier = Modifier, emotion: Int = 1) {
             image = sprites,
             srcOffset = IntOffset((frameIndex % 4) * frameWidth, (frameIndex / 4) * frameHeight),
             srcSize = IntSize(frameWidth, frameHeight),
-            dstOffset = IntOffset.Zero,
-            dstSize = IntSize(size.width.toInt(), size.height.toInt())
+            dstOffset = IntOffset(0, ((size.height - size.width * frameHeight.toFloat() / frameWidth) / 2f).toInt()),
+            dstSize = IntSize(size.width.toInt(), (size.width * frameHeight.toFloat() / frameWidth).toInt())
         )
         }
     }
