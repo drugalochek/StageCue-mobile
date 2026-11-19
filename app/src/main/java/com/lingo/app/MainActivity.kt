@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -224,7 +225,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSa
                             colors = ButtonDefaults.outlinedButtonColors(containerColor = when { feedback && i == q.answer -> Color(0xFFE8F7EF); feedback && i == selected -> Color(0xFFFFEEEE); else -> Color.White })
                         ) { Text(answer, color = Ink) }
                     }
-                    if (feedback) Text(if (selected == q.answer) "Верно. " + q.explanation else "Не совсем. " + q.explanation, color = if (selected == q.third) Green else Color(0xFFD36A6A), fontSize = 13.sp)
+                    if (feedback) Text(if (selected == q.answer) "Верно. " + q.explanation else "Не совсем. " + q.explanation, color = if (selected == q.answer) Green else Color(0xFFD36A6A), fontSize = 13.sp)
                 }
             },
             confirmButton = {
