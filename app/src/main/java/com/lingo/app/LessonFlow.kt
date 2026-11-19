@@ -115,13 +115,19 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
 
     Dialog(onDismissRequest = onExit, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(color = Pale, shape = RoundedCornerShape(0.dp), modifier = Modifier.fillMaxSize()) {
-            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 24.dp, end = 24.dp, top = 28.dp, bottom = 30.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
+            Column(Modifier.fillMaxSize().background(Pale).verticalScroll(rememberScrollState()).padding(start = 22.dp, end = 22.dp, top = 34.dp, bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                 if (finished) {
-                    Text(ui("Урок завершён", "Lesson complete"), fontSize = 25.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
-                    Text(score.toString() + " из " + graded + " упражнений выполнено правильно", color = Muted)
-                    LinearProgressIndicator(progress = { score.toFloat() / graded.coerceAtLeast(1) }, modifier = Modifier.fillMaxWidth().height(9.dp))
-                    Text(ui("Ты изучал слова в контексте, строил предложения, читал и тренировался говорить.", "You learned words in context, built sentences, read, and practiced speaking."), color = Ink)
-                    Button(onClick = { onComplete(score, graded) }, modifier = Modifier.fillMaxWidth()) { Text(ui("Продолжить", "Continue")) }
+                    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { BearMascot(Modifier.size(220.dp), emotion = if (score >= graded * 0.7f) 8 else 13) }
+                    Text(ui("Урок пройден!", "Lesson complete!"), fontSize = 29.sp, fontWeight = FontWeight.ExtraBold, color = Ink, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                    Surface(color = CardRaised, shape = RoundedCornerShape(22.dp), modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text(score.toString() + " / " + graded + " " + ui("правильных ответов", "correct answers"), color = Ink, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                            LinearProgressIndicator(progress = { score.toFloat() / graded.coerceAtLeast(1) }, modifier = Modifier.fillMaxWidth().height(9.dp).clip(RoundedCornerShape(20.dp)), color = Blue, trackColor = Line)
+                            Text("+${score * 5} XP", color = Gold, fontWeight = FontWeight.ExtraBold, fontSize = 23.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                        }
+                    }
+                    Text(ui("Ты изучал слова в контексте, строил предложения, читал и тренировался говорить.", "You learned words in context, built sentences, read, and practiced speaking."), color = Muted, textAlign = TextAlign.Center)
+                    Button(onClick = { onComplete(score, graded) }, modifier = Modifier.fillMaxWidth().height(54.dp), shape = RoundedCornerShape(18.dp)) { Text(ui("Продолжить", "Continue"), fontWeight = FontWeight.Bold) }
                 } else {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = onExit) { Icon(Icons.Default.Close, contentDescription = ui("Закрыть урок", "Close lesson"), tint = Muted, modifier = Modifier.size(28.dp)) }
@@ -131,9 +137,13 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                         }
                         Text("${index + 1} / ${tasks.size}", color = Ink, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                     }
-                    LinearProgressIndicator(progress = { (index + 1).toFloat() / tasks.size }, modifier = Modifier.fillMaxWidth().height(9.dp), color = Blue, trackColor = Line, strokeCap = androidx.compose.ui.graphics.StrokeCap.Round)
-                    Surface(color = CardRaised, shape = RoundedCornerShape(14.dp)) {
-                        Text(task.title.uppercase(), Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp), color = Blue, fontWeight = FontWeight.Bold, fontSize = 11.sp, letterSpacing = 1.sp)
+                    LinearProgressIndicator(progress = { (index + 1).toFloat() / tasks.size }, modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(20.dp)), color = Blue, trackColor = Line, strokeCap = androidx.compose.ui.graphics.StrokeCap.Round)
+                    Surface(color = CardRaised, shape = RoundedCornerShape(15.dp)) {
+                        Row(Modifier.fillMaxWidth().padding(horizontal = 15.dp, vertical = 13.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = Blue, modifier = Modifier.size(17.dp))
+                            Spacer(Modifier.width(9.dp))
+                            Text(task.title.uppercase(), color = Blue, fontWeight = FontWeight.Bold, fontSize = 11.sp, letterSpacing = 1.sp)
+                        }
                     }
                     when (task.kind) {
                         "intro" -> {
@@ -141,7 +151,7 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                             Text(task.explanation, color = Muted)
                             Text(ui("Новые выражения", "New expressions"), color = Ink, fontWeight = FontWeight.Bold)
                             course.firstUnit.vocabulary.take(4).forEach { w ->
-                                Surface(color = CardRaised, shape = RoundedCornerShape(13.dp), modifier = Modifier.fillMaxWidth()) {
+                                Surface(color = CardRaised, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
                                     Column(Modifier.padding(13.dp)) {
                                         Text(w.term, color = Ink, fontWeight = FontWeight.Bold)
                                         Text(w.meaning, color = Blue)
@@ -162,8 +172,8 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                         }
                         "listen" -> {
                             Text(task.prompt, fontSize = 19.sp, fontWeight = FontWeight.SemiBold, color = Ink)
-                            Surface(color = CardRaised, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
-                                Row(Modifier.padding(17.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Surface(color = CardRaised, shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth()) {
+                                Row(Modifier.padding(19.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.VolumeUp, contentDescription = null, tint = Blue)
                                     Spacer(Modifier.width(10.dp))
                                     Column {
@@ -248,8 +258,8 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                         }
                     }
                     if (checked) {
-                        Surface(color = CardRaised, shape = RoundedCornerShape(14.dp)) {
-                            Column(Modifier.fillMaxWidth().padding(13.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Surface(color = CardRaised, shape = RoundedCornerShape(18.dp)) {
+                            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Text(if (correct) ui("Верно!", "Correct!") else ui("Разберём ответ", "Review your answer"), color = if (correct) Green else Gold, fontWeight = FontWeight.Bold)
                                 if (!correct && task.answer.isNotBlank()) Text(ui("Правильный вариант: ", "Correct answer: ") + task.answer, color = Ink)
                                 if (task.explanation.isNotBlank()) Text(task.explanation, color = Muted, fontSize = 12.sp)
@@ -281,7 +291,7 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                             else -> "Следующий этап"
                         })
                     }
-                    Text(ui("После каждого упражнения разбираем результат и закрепляем материал.", "Review each result and reinforce what you learned."), color = Muted, fontSize = 11.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                    Text(ui("Lingo · маленькие шаги каждый день", "Lingo · little steps every day"), color = Muted, fontSize = 11.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                 }
             }
         }
