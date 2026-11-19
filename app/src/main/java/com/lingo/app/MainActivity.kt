@@ -210,6 +210,22 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                             Text(ui("Продолжить обучение  →", "Continue learning  →"), color = Color(0xFF15102F), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         }
                     }
+                    item { HomeStatsRow(xp = xp, streak = streak, stage = stage, totalStages = course.units.size) }
+                    item {
+                        Surface(color = Card, shape = RoundedCornerShape(22.dp), modifier = Modifier.fillMaxWidth()) {
+                            Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Surface(color = CardRaised, shape = RoundedCornerShape(15.dp)) {
+                                    Icon(Icons.Default.Flag, null, tint = Gold, modifier = Modifier.padding(12.dp).size(23.dp))
+                                }
+                                Spacer(Modifier.width(12.dp))
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                    Text(ui("Твоя цель на сегодня", "Your daily goal"), color = Ink, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                    Text(if (AppLanguage.isEnglish) "$dailyGoal minutes of English" else "$dailyGoal минут английского", color = Muted, fontSize = 12.sp)
+                                }
+                                Text("✦", color = Gold, fontSize = 24.sp)
+                            }
+                        }
+                    }
                 }
                 "Прогресс" -> {
                     item {
@@ -808,6 +824,30 @@ private fun StoreItemCard(name: String, description: String, price: String, symb
             }
             Text(name, color = Ink, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, textAlign = TextAlign.Center, maxLines = 1)
             Text("★ $price", color = Gold, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+
+@Composable
+private fun HomeStatsRow(xp: Int, streak: Int, stage: Int, totalStages: Int) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(ui("ТВОИ РЕЗУЛЬТАТЫ", "YOUR ACTIVITY"), color = Muted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.4.sp)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+            HomeStatTile(value = "$xp", label = "XP", symbol = "✦", tint = Gold, modifier = Modifier.weight(1f))
+            HomeStatTile(value = "$streak", label = ui("дней подряд", "day streak"), symbol = "🔥", tint = Color(0xFFFF9A62), modifier = Modifier.weight(1f))
+            HomeStatTile(value = "$stage/$totalStages", label = ui("этап курса", "course stage"), symbol = "↗", tint = Blue, modifier = Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun HomeStatTile(value: String, label: String, symbol: String, tint: Color, modifier: Modifier = Modifier) {
+    Surface(color = Card, shape = RoundedCornerShape(18.dp), modifier = modifier) {
+        Column(Modifier.padding(horizontal = 11.dp, vertical = 13.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+            Text(symbol, color = tint, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+            Text(value, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1)
+            Text(label, color = Muted, fontSize = 10.sp, maxLines = 1)
         }
     }
 }
