@@ -4,7 +4,7 @@ Lingo is a mobile-first language learning app built with Kotlin and Jetpack Comp
 
 ## Current foundation
 - Language-specific course catalog: English, Spanish, German, French, Italian, Portuguese, Turkish and Japanese
-- Each starter course has its own authored dialogue, vocabulary, reading passage, comprehension prompts and quiz questions
+- Each starter course has its own authored dialogue, vocabulary with contextual examples, reading passage, comprehension prompts, grammar patterns, sentence-building explanations, free-form writing task and quiz questions
 - Linear learning path with stages and lessons
 - Stage knowledge check to skip a stage
 - Daily streak and XP foundation
