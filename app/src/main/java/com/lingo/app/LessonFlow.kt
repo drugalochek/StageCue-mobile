@@ -140,7 +140,7 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                     LinearProgressIndicator(progress = { (index + 1).toFloat() / tasks.size }, modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(20.dp)), color = Blue, trackColor = Line, strokeCap = androidx.compose.ui.graphics.StrokeCap.Round)
                     Surface(color = CardRaised, shape = RoundedCornerShape(15.dp)) {
                         Row(Modifier.fillMaxWidth().padding(horizontal = 15.dp, vertical = 13.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = Blue, modifier = Modifier.size(17.dp))
+                            Icon(Icons.Default.Star, contentDescription = null, tint = Blue, modifier = Modifier.size(17.dp))
                             Spacer(Modifier.width(9.dp))
                             Text(task.title.uppercase(), color = Blue, fontWeight = FontWeight.Bold, fontSize = 11.sp, letterSpacing = 1.sp)
                         }
