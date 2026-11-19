@@ -74,6 +74,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var player: ExoPlayer
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        @Suppress("DEPRECATION")
+        window.decorView.systemUiVisibility = 0
         player = ExoPlayer.Builder(this).build()
         val prefs = getSharedPreferences("stagecue", MODE_PRIVATE)
         val tracks = mutableStateListOf<CueTrack>()
