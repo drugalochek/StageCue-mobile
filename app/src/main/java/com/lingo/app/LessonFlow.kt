@@ -44,40 +44,41 @@ private data class LessonTask(
     val explanation: String = "", val pairs: List<Pair<String, String>> = emptyList()
 )
 
-private fun lessonTasks(course: LanguageCourse, placement: Boolean): List<LessonTask> {
-    val u = course.firstUnit
+private fun lessonTasks(course: LanguageCourse, unit: LessonUnit, placement: Boolean): List<LessonTask> {
+    val u = unit
     if (placement) return u.quiz.take(8).map {
         LessonTask("choice", "Проверка уровня", it.prompt, it.options[it.answer], it.options, it.explanation)
     }
     val v = u.vocabulary
-    val a = v[0]
+    val a = v.first()
     val b = v.getOrElse(1) { a }
-    val c = v.getOrElse(2) { a }
     val firstLine = u.dialogue.first()
-    val blank = a.example.replace(a.term, "_____", ignoreCase = true)
-    val fillAnswer = if (blank != a.example) a.term else c.term
-    val fillPrompt = if (blank != a.example) blank else c.example
-    val quizTasks = u.quiz.take(4).map { quiz ->
-        LessonTask("choice", "Выбери правильный перевод", quiz.prompt, quiz.options[quiz.answer], quiz.options, quiz.explanation)
+    val blank = a.example.replace(a.term.substringBefore(" / "), "_____", ignoreCase = true)
+    val fillAnswer = a.term.substringBefore(" / ")
+    val fillPrompt = if (blank != a.example) blank else a.example
+    val quizTasks = u.quiz.map { quiz ->
+        LessonTask("choice", "Проверь себя", quiz.prompt, quiz.options[quiz.answer], quiz.options, quiz.explanation)
     }
-    return quizTasks + listOf(
+    return listOf(
+        LessonTask("intro", "Новая тема", u.title, explanation = u.goal),
+        LessonTask("learn", "Сначала запомни слова", "Прочитай новые слова и примеры. Не торопись — они понадобятся дальше."),
+        LessonTask("match", "Соедини пары", "Найди перевод каждого нового слова.",
+            pairs = v.map { it.term to it.meaning }, explanation = "Отлично! Эти слова встретятся в следующих заданиях.")
+    ) + quizTasks + listOf(
         LessonTask("listen", "Слушай и собирай фразу", "Собери фразу из слов в правильном порядке.",
-            firstLine.text, firstLine.text.split(Regex("\\\\s+")).shuffled(), "Перевод: " + firstLine.translation),
-        LessonTask("type", "Переведи самостоятельно", "Напиши на изучаемом языке:\\n«" + b.meaning + "»",
+            firstLine.text, firstLine.text.split(Regex("\\s+")).shuffled(), "Перевод: " + firstLine.translation),
+        LessonTask("type", "Переведи самостоятельно", "Напиши на изучаемом языке:\n«" + b.meaning + "»",
             b.term, explanation = "Пример: " + b.example),
-        LessonTask("fill", "Восстанови предложение", "Вставь пропущенное слово:\\n" + fillPrompt,
+        LessonTask("fill", "Восстанови предложение", "Вставь пропущенное слово:\n" + fillPrompt,
             fillAnswer, explanation = a.meaning + ". " + a.note),
-        LessonTask("match", "Соедини пары", "Найди перевод каждого слова.",
-            pairs = v.take(4).map { it.term to it.meaning }, explanation = "Повтори эти пары: они встретятся дальше."),
-        LessonTask("reading", "Прочитай и пойми", u.reading.title + "\\n\\n" + u.reading.body,
+        LessonTask("reading", "Прочитай и пойми", u.reading.title + "\n\n" + u.reading.body,
             u.reading.questions.first().second,
             listOf(u.reading.questions.first().second, u.reading.questions.last().second).distinct(),
             u.reading.translation),
-        LessonTask("speak", "Произнеси фразу", "Произнеси вслух:\\n«" + u.dialogue.last().text + "»",
+        LessonTask("speak", "Произнеси фразу", "Произнеси вслух:\n«" + u.dialogue.last().text + "»",
             u.dialogue.last().text, explanation = u.dialogue.last().translation)
     )
 }
-
 @Composable
 internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -> Unit, onComplete: (Int, Int) -> Unit) {
     val tasks = remember(course.id, placement) { lessonTasks(course, placement) }
