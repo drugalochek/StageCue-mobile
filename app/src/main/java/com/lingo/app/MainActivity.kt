@@ -404,7 +404,7 @@ private fun CoursePicker(course: LanguageCourse, expanded: Boolean, onExpandedCh
             Icon(Icons.Default.ExpandMore, contentDescription = null)
         }
         Spacer(Modifier.width(8.dp))
-        FilledIconButton(onClick = { onExpandedChange(true) }) { Icon(Icons.Default.Add, contentDescription = "Добавить курс") }
+        FilledIconButton(onClick = { onExpandedChange(true) }) { Icon(Icons.Default.Add, contentDescription = ui("Добавить курс", "Add course")) }
         DropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }) {
             CourseCatalog.courses.forEach { item ->
                 DropdownMenuItem(
@@ -422,7 +422,7 @@ private fun DialogueCard(course: LanguageCourse) {
     val dialogue = course.firstUnit.dialogue
     Surface(color = Card, shape = RoundedCornerShape(20.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("ДИАЛОГ · " + course.nativeName.uppercase(), color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            Text(ui("ДИАЛОГ · ", "DIALOGUE · ") + course.nativeName.uppercase(), color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             Text(course.firstUnit.title, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             dialogue.forEach { line ->
                 Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
@@ -439,12 +439,12 @@ private fun DialogueCard(course: LanguageCourse) {
 private fun ReadingCard(reading: ReadingText) {
     Surface(color = Card, shape = RoundedCornerShape(20.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-            Text("ЧИТАЕМ И ПОНИМАЕМ", color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            Text(ui("ЧИТАЕМ И ПОНИМАЕМ", "READING COMPREHENSION"), color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             Text(reading.title, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Text(reading.body, color = Ink, fontSize = 15.sp, lineHeight = 22.sp)
             var showTranslation by remember { mutableStateOf(false) }
             TextButton(onClick = { showTranslation = !showTranslation }, contentPadding = PaddingValues(0.dp)) {
-                Text(if (showTranslation) "Скрыть перевод" else "Показать перевод")
+                Text(if (showTranslation) ui("Скрыть перевод", "Hide translation") else ui("Показать перевод", "Show translation"))
             }
             AnimatedVisibility(showTranslation) { Text(reading.translation, color = Muted, fontSize = 14.sp, lineHeight = 21.sp) }
             reading.questions.forEach { (prompt, answer) ->
@@ -452,7 +452,7 @@ private fun ReadingCard(reading: ReadingText) {
                 Column {
                     Text(prompt, color = Ink, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                     TextButton(onClick = { showAnswer = !showAnswer }, contentPadding = PaddingValues(0.dp)) {
-                        Text(if (showAnswer) answer else "Показать ответ")
+                        Text(if (showAnswer) answer else ui("Показать ответ", "Show answer"))
                     }
                 }
             }
@@ -465,7 +465,7 @@ private fun ReadingCard(reading: ReadingText) {
 private fun GrammarCard(point: GrammarPoint) {
     Surface(color = Card, shape = RoundedCornerShape(20.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-            Text("КАК СТРОИТЬ ФРАЗЫ", color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            Text(ui("КАК СТРОИТЬ ФРАЗЫ", "HOW TO BUILD SENTENCES"), color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             Text(point.title, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Surface(color = CardRaised, shape = RoundedCornerShape(10.dp)) {
                 Text(point.pattern, Modifier.fillMaxWidth().padding(12.dp), color = Blue, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
@@ -488,7 +488,7 @@ private fun WritingCard(task: WritingTask) {
     var showSample by remember(task.title) { mutableStateOf(false) }
     Surface(color = Card, shape = RoundedCornerShape(20.dp)) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("СОБСТВЕННЫЙ ТЕКСТ", color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            Text(ui("СОБСТВЕННЫЙ ТЕКСТ", "YOUR OWN WRITING"), color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             Text(task.title, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Text(task.situation, color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
             Text(task.instruction, color = Ink, fontSize = 14.sp, lineHeight = 21.sp)
@@ -498,10 +498,10 @@ private fun WritingCard(task: WritingTask) {
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 4,
                 placeholder = { Text(task.starter, color = Muted) },
-                label = { Text("Твой вариант") }
+                label = { Text(ui("Твой вариант", "Your answer")) }
             )
             TextButton(onClick = { showSample = !showSample }, contentPadding = PaddingValues(0.dp)) {
-                Text(if (showSample) "Скрыть пример" else "Посмотреть пример ответа")
+                Text(if (showSample) ui("Скрыть пример", "Hide example") else ui("Посмотреть пример ответа", "View sample answer"))
             }
             AnimatedVisibility(showSample) {
                 Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
@@ -509,7 +509,7 @@ private fun WritingCard(task: WritingTask) {
                     Text(task.translation, color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
                 }
             }
-            Text("Не копируй пример дословно. Меняй детали и строй собственные фразы.", color = Muted, fontSize = 12.sp)
+            Text(ui("Не копируй пример дословно. Меняй детали и строй собственные фразы.", "Do not copy the sample word for word. Change the details and write your own sentences."), color = Muted, fontSize = 12.sp)
         }
     }
 }
@@ -525,7 +525,7 @@ private fun StageCard(stage: Int, onStart: () -> Unit, onSkip: () -> Unit) {
                 Spacer(Modifier.width(11.dp))
                 Column(Modifier.weight(1f)) {
                     Text(ui("ЭТАП", "STAGE") + " $stage", color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                    Text("Знакомство и приветствия", color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                    Text(ui("Знакомство и приветствия", "Introductions and greetings"), color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                 }
                 Icon(Icons.Default.LockOpen, null, tint = Green)
             }
@@ -538,7 +538,7 @@ private fun StageCard(stage: Int, onStart: () -> Unit, onSkip: () -> Unit) {
                             }
                         }
                         Spacer(Modifier.height(5.dp))
-                        Text(if (index == 3) "Тест" else "Урок ${index + 1}", fontSize = 10.sp, color = Muted)
+                        Text(if (index == 3) ui("Тест", "Test") else ui("Урок ${index + 1}", "Lesson ${index + 1}"), fontSize = 10.sp, color = Muted)
                     }
                 }
             }
@@ -622,14 +622,14 @@ private fun StoreHeader(gems: Int) {
     Surface(color = CardRaised, shape = RoundedCornerShape(22.dp)) {
         Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Text("КОЛЛЕКЦИЯ LINGO", color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
-                Text("Укрась свой профиль", color = Ink, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
-                Text("Предметы и реакции для маскота", color = Muted, fontSize = 12.sp)
+                Text(ui("КОЛЛЕКЦИЯ LINGO", "LINGO COLLECTION"), color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+                Text(ui("Укрась свой профиль", "Customize your profile"), color = Ink, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+                Text(ui("Предметы и реакции для маскота", "Items and reactions for your mascot"), color = Muted, fontSize = 12.sp)
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("✦", color = Gold, fontSize = 30.sp)
                 Text("$gems", color = Gold, fontWeight = FontWeight.Bold)
-                Text("кристаллов", color = Muted, fontSize = 10.sp)
+                Text(ui("кристаллов", "gems"), color = Muted, fontSize = 10.sp)
             }
         }
     }
@@ -652,7 +652,7 @@ private fun StoreItemCard(name: String, description: String, price: String, symb
                 Text("✦ $price", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
             Button(onClick = { purchased = true }, enabled = !purchased, shape = RoundedCornerShape(12.dp), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)) {
-                Text(if (purchased) "Выбрано" else "Открыть", fontSize = 11.sp)
+                Text(if (purchased) ui("Выбрано", "Selected") else ui("Открыть", "Unlock"), fontSize = 11.sp)
             }
         }
     }
