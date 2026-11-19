@@ -121,9 +121,9 @@ internal fun LessonFlow(course: LanguageCourse, placement: Boolean, onExit: () -
                     Button(onClick = { onComplete(score, graded) }, modifier = Modifier.fillMaxWidth()) { Text(ui("Продолжить", "Continue")) }
                 } else {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = onExit) { Icon(Icons.Default.ArrowBack, contentDescription = "Закрыть урок", tint = Ink) }
+                        IconButton(onClick = onExit) { Icon(Icons.Default.ArrowBack, contentDescription = ui("Закрыть урок", "Close lesson"), tint = Ink) }
                         Column(Modifier.weight(1f)) {
-                            Text(if (placement) "Проверка уровня" else course.name, fontWeight = FontWeight.Bold, color = Ink)
+                            Text(if (placement) ui("Проверка уровня", "Placement check") else course.name, fontWeight = FontWeight.Bold, color = Ink)
                             Text(ui("Шаг ", "Step ") + (index + 1) + " из " + tasks.size, color = Muted, fontSize = 12.sp)
                         }
                         Text((index * 100 / tasks.size).toString() + "%", color = Blue, fontWeight = FontWeight.Bold)
@@ -359,7 +359,7 @@ internal fun OnboardingScreen(
         Spacer(Modifier.height(18.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             if (step > 0) OutlinedButton(onClick = { step-- }, modifier = Modifier.weight(1f)) { Text(ui("Назад", "Back")) }
-            Button(onClick = { if (step < 3) step++ else onFinish(courseId, goal, level) }, modifier = Modifier.weight(2f)) { Text(if (step < 3) "Продолжить" else "Начать обучение") }
+            Button(onClick = { if (step < 3) step++ else onFinish(courseId, goal, level) }, modifier = Modifier.weight(2f)) { Text(if (step < 3) ui("Продолжить", "Continue") else ui("Начать обучение", "Start learning")) }
         }
     }
 }
