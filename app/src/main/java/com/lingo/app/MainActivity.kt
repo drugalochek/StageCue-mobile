@@ -642,12 +642,21 @@ private fun BearSpeech(message: String, emotion: Int = 2) {
 
 @Composable
 private fun QuestCard(title: String, description: String, progress: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
-    Surface(color = Card, shape = RoundedCornerShape(18.dp)) {
-        Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Surface(color = CardRaised, shape = RoundedCornerShape(14.dp)) { Icon(icon, null, tint = Blue, modifier = Modifier.padding(11.dp)) }
+    val current = progress.substringBefore("/").trim().toFloatOrNull() ?: 0f
+    val total = progress.substringAfter("/", "").trim().substringBefore(" ").toFloatOrNull()?.coerceAtLeast(1f) ?: 1f
+    Surface(color = Card, shape = RoundedCornerShape(20.dp)) {
+        Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
+            Surface(color = CardRaised, shape = RoundedCornerShape(14.dp)) {
+                Icon(icon, null, tint = Blue, modifier = Modifier.padding(12.dp).size(23.dp))
+            }
             Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) { Text(title, color = Ink, fontWeight = FontWeight.Bold); Text(description, color = Muted, fontSize = 12.sp) }
-            Text(progress, color = Blue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text(title, color = Ink, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text(description, color = Muted, fontSize = 11.sp, maxLines = 2)
+                LinearProgressIndicator(progress = { (current / total).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape), color = Blue, trackColor = Line)
+            }
+            Spacer(Modifier.width(9.dp))
+            Text(progress, color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
