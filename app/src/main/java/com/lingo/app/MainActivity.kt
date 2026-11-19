@@ -209,6 +209,11 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSa
             title = { Text(if (skipTest) "Проверка этапа" else "Мини-урок", fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        BearMascot(Modifier.size(76.dp), emotion = bearEmotion)
+                        Spacer(Modifier.width(10.dp))
+                        Text(if (feedback && selected == q.third) "Точно! Это правильный ответ." else if (feedback) "Промах. Попробуй запомнить." else "Выбирай ответ. Я проверю.", color = Muted, fontSize = 13.sp)
+                    }
                     Text("Вопрос ${question + 1} из 5", color = Muted, fontSize = 12.sp)
                     LinearProgressIndicator(progress = { (question + 1) / 5f }, modifier = Modifier.fillMaxWidth())
                     Text(q.first, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
@@ -281,17 +286,19 @@ private fun BearMascot(modifier: Modifier = Modifier, emotion: Int = 1) {
         animationSpec = infiniteRepeatable(tween(1300, easing = FastOutSlowInEasing), RepeatMode.Reverse),
         label = "bob"
     )
-    Canvas(modifier.offset(y = bob.dp)) {
+    AnimatedContent(targetState = emotion, label = "bear-expression") { frame ->
+        Canvas(modifier.offset(y = bob.dp)) {
         val frameWidth = sprites.width / 4
         val frameHeight = sprites.height / 4
-        val frame = emotion.coerceIn(0, 15)
+        val frameIndex = frame.coerceIn(0, 15)
         drawImage(
             image = sprites,
-            srcOffset = IntOffset((frame % 4) * frameWidth, (frame / 4) * frameHeight),
+            srcOffset = IntOffset((frameIndex % 4) * frameWidth, (frameIndex / 4) * frameHeight),
             srcSize = IntSize(frameWidth, frameHeight),
             dstOffset = IntOffset.Zero,
             dstSize = IntSize(size.width.toInt(), size.height.toInt())
         )
+        }
     }
 }
 
