@@ -94,7 +94,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
     var selected by remember { mutableIntStateOf(-1) }
     var correct by remember { mutableIntStateOf(0) }
     var feedback by remember { mutableStateOf(false) }
-    var bearEmotion by remember { mutableIntStateOf(1) }
+    var bearEmotion by remember { mutableIntStateOf(2) }
     var courseId by remember { mutableStateOf(initialCourse) }
     var dailyGoal by remember { mutableIntStateOf(initialGoal) }
     var setupDone by remember { mutableStateOf(onboardingDone) }
@@ -714,20 +714,15 @@ private fun StoreHeader(gems: Int) {
 
 @Composable
 private fun StoreItemCard(name: String, description: String, price: String, symbol: String, modifier: Modifier = Modifier) {
-    var purchased by remember { mutableStateOf(false) }
     Surface(color = Card, shape = RoundedCornerShape(22.dp), modifier = modifier) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 14.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(7.dp)) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 13.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Surface(color = CardRaised, shape = RoundedCornerShape(18.dp)) {
-                Box(Modifier.fillMaxWidth().height(92.dp), contentAlignment = Alignment.Center) {
-                    Text(symbol, color = Blue, fontSize = 48.sp, fontWeight = FontWeight.Bold)
+                Box(Modifier.fillMaxWidth().height(104.dp), contentAlignment = Alignment.Center) {
+                    Text(symbol, color = Blue, fontSize = 54.sp, fontWeight = FontWeight.Bold)
                 }
             }
-            Text(name, color = Ink, fontWeight = FontWeight.Bold, fontSize = 14.sp, textAlign = TextAlign.Center, maxLines = 1)
-            Text(description, color = Muted, fontSize = 10.sp, textAlign = TextAlign.Center, minLines = 2, maxLines = 2)
-            Text("★ $price", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            Button(onClick = { purchased = true }, enabled = !purchased, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(13.dp), contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)) {
-                Text(if (purchased) ui("Выбрано", "Selected") else ui("Открыть", "Unlock"), fontSize = 11.sp)
-            }
+            Text(name, color = Ink, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, textAlign = TextAlign.Center, maxLines = 1)
+            Text("★ $price", color = Gold, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
