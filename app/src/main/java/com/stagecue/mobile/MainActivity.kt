@@ -67,26 +67,6 @@ private val Line = Color(0xFF293442)
 private val Blue = Color(0xFF4D9BFA)
 private val Txt = Color(0xFFF0F4FA)
 private val Muted = Color(0xFF8996A5)
-private val StageFont = FontFamily(Font(R.font.nomor1))
-private val StageTypography = Typography().let { t ->
-    t.copy(
-        displayLarge = t.displayLarge.copy(fontFamily = StageFont),
-        displayMedium = t.displayMedium.copy(fontFamily = StageFont),
-        displaySmall = t.displaySmall.copy(fontFamily = StageFont),
-        headlineLarge = t.headlineLarge.copy(fontFamily = StageFont),
-        headlineMedium = t.headlineMedium.copy(fontFamily = StageFont),
-        headlineSmall = t.headlineSmall.copy(fontFamily = StageFont),
-        titleLarge = t.titleLarge.copy(fontFamily = StageFont),
-        titleMedium = t.titleMedium.copy(fontFamily = StageFont),
-        titleSmall = t.titleSmall.copy(fontFamily = StageFont),
-        bodyLarge = t.bodyLarge.copy(fontFamily = StageFont),
-        bodyMedium = t.bodyMedium.copy(fontFamily = StageFont),
-        bodySmall = t.bodySmall.copy(fontFamily = StageFont),
-        labelLarge = t.labelLarge.copy(fontFamily = StageFont),
-        labelMedium = t.labelMedium.copy(fontFamily = StageFont),
-        labelSmall = t.labelSmall.copy(fontFamily = StageFont)
-    )
-}
 
 data class CueTrack(val uri: String, val name: String, val slot: Int, val keyCode: Int = 0, val touchAction: String = "PLAY")
 
@@ -109,12 +89,14 @@ class MainActivity : ComponentActivity() {
         } catch (_: Exception) { }
         setContent {
             MaterialTheme(colorScheme = darkColorScheme(primary = Blue, background = Bg,
-                surface = Panel, onBackground = Txt, onSurface = Txt), typography = StageTypography) {
+                surface = Panel, onBackground = Txt, onSurface = Txt)) {
+                CompositionLocalProvider(LocalContentColor provides Txt) {
                 StageCueScreen(tracks, player) {
                     val arr = JSONArray()
                     tracks.forEach { t -> arr.put(JSONObject().put("uri", t.uri)
                         .put("name", t.name).put("slot", t.slot).put("keyCode", t.keyCode).put("touchAction", t.touchAction)) }
                     prefs.edit().putString("tracks", arr.toString()).apply()
+                }
                 }
             }
         }
@@ -369,17 +351,36 @@ private fun StageCueScreen(tracks: MutableList<CueTrack>, player: ExoPlayer, sav
                 if (player.isPlaying) player.pause() else if (player.mediaItemCount > 0) player.play()
             }) {
             Column(Modifier.padding(horizontal = 11.dp, vertical = 8.dp)) {
-                LinearProgressIndicator(progress = { if (dur > 0) (pos.toFloat() / dur.toFloat()).coerceIn(0f, 1f) else 0f }, modifier = Modifier.fillMaxWidth().height(3.dp), color = Blue, trackColor = Line)
-                Row(Modifier.padding(top = 7.dp), verticalAlignment = Alignment.CenterVertically) {
-                TrackArtwork(current, Modifier.size(36.dp))
-                Spacer(Modifier.width(10.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(tracks.firstOrNull { it.uri == current }?.name ?: "StageCue готов",
-                        maxLines = 1, overflow = TextOverflow.Ellipsis, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                    Text(if (playing) "Воспроизведение" else "Остановлено", color = Muted, fontSize = 10.sp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TrackArtwork(current, Modifier.size(36.dp))
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(tracks.firstOrNull { it.uri == current }?.name ?: "StageCue готов",
+                            maxLines = 1, overflow = TextOverflow.Ellipsis, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Text(if (playing) "Воспроизведение" else "Остановлено", color = Muted, fontSize = 10.sp)
+                    }
+                    IconButton(onClick = { if (player.hasPreviousMediaItem()) player.seekToPreviousMediaItem() },
+                        modifier = Modifier.size(36.dp)) {
+                        Icon(Icons.Default.SkipPrevious, null, tint = Txt, modifier = Modifier.size(20.dp))
+                    }
+                    IconButton(onClick = {
+                        if (player.isPlaying) player.pause() else if (player.mediaItemCount > 0) player.play()
+                    }, modifier = Modifier.size(36.dp)) {
+                        Icon(if (playing) Icons.Default.Pause else Icons.Default.PlayArrow, null,
+                            tint = Blue, modifier = Modifier.size(23.dp))
+                    }
+                    IconButton(onClick = { if (player.hasNextMediaItem()) player.seekToNextMediaItem() },
+                        modifier = Modifier.size(36.dp)) {
+                        Icon(Icons.Default.SkipNext, null, tint = Txt, modifier = Modifier.size(20.dp))
+                    }
                 }
-                Icon(if (playing) Icons.Default.Pause else Icons.Default.PlayArrow, null, tint = Blue)
-                }
+                Slider(
+                    value = if (dur > 0) pos.toFloat().coerceIn(0f, dur.toFloat()) else 0f,
+                    onValueChange = { pos = it.toLong() },
+                    onValueChangeFinished = { if (dur > 0) player.seekTo(pos) },
+                    valueRange = 0f..dur.coerceAtLeast(1L).toFloat(),
+                    modifier = Modifier.fillMaxWidth().height(22.dp)
+                )
             }
         }
     }
