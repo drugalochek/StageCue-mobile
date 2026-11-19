@@ -35,12 +35,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val Ink = Color(0xFF20242C)
-private val Muted = Color(0xFF858B96)
-private val Blue = Color(0xFF526FE5)
-private val Pale = Color(0xFFF4F6FB)
-private val Green = Color(0xFF58B889)
-private val Line = Color(0xFFE8EAF0)
+internal val Ink = Color(0xFF20242C)
+internal val Muted = Color(0xFF858B96)
+internal val Blue = Color(0xFF526FE5)
+internal val Pale = Color(0xFFF4F6FB)
+internal val Green = Color(0xFF58B889)
+internal val Line = Color(0xFFE8EAF0)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -435,7 +435,7 @@ private fun StageCard(stage: Int, onStart: () -> Unit, onSkip: () -> Unit) {
 }
 
 @Composable
-private fun BearMascot(modifier: Modifier = Modifier, emotion: Int = 1) {
+internal fun BearMascot(modifier: Modifier = Modifier, emotion: Int = 1) {
     val sprites = ImageBitmap.imageResource(R.drawable.bear_emotions)
     val transition = rememberInfiniteTransition(label = "bear")
     val bob by transition.animateFloat(
