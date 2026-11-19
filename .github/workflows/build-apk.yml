@@ -1,48 +1,29 @@
-name: Build StageCue APK
-
+name: Build Lingo APK
 on:
   workflow_dispatch:
   push:
     branches: [ main ]
-
 permissions:
   contents: read
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Prepare original StageCue launcher icon
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y imagemagick
-          mkdir -p app/src/main/res/mipmap-mdpi app/src/main/res/mipmap-hdpi app/src/main/res/mipmap-xhdpi app/src/main/res/mipmap-xxhdpi app/src/main/res/mipmap-xxxhdpi
-          convert "Glossy Blue Monogram Emblem.ico[0]" -background none -resize 48x48 app/src/main/res/mipmap-mdpi/ic_launcher.png
-          convert "Glossy Blue Monogram Emblem.ico[0]" -background none -resize 72x72 app/src/main/res/mipmap-hdpi/ic_launcher.png
-          convert "Glossy Blue Monogram Emblem.ico[0]" -background none -resize 96x96 app/src/main/res/mipmap-xhdpi/ic_launcher.png
-          convert "Glossy Blue Monogram Emblem.ico[0]" -background none -resize 144x144 app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-          convert "Glossy Blue Monogram Emblem.ico[0]" -background none -resize 192x192 app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-      - name: Prepare StageCue font
-        run: |
-          mkdir -p app/src/main/res/font
-          cp Nomor1Demo-yY5y2.ttf app/src/main/res/font/nomor1.ttf
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: StageCue-mobile-debug
+          name: Lingo-debug
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
