@@ -216,7 +216,39 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                     items(unit.vocabulary.size) { index -> val word = unit.vocabulary[index]; WordCard(word.term, word.meaning, word.note) }
                 }
                 else -> {
-                    item { BearSpeech("Это твой профиль. Тут можно будет следить за прогрессом. Не переживай, я тоже удивлён.") }
+                    item { BearSpeech("Твои языки, страны и главы курсов. Выбирай, куда двигаться дальше.") }
+                    item { Text("Мои курсы", color = Ink, fontWeight = FontWeight.Bold, fontSize = 19.sp) }
+                    item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it; onSaveSettings(it, dailyGoal) }) }
+                    items(CourseCatalog.courses.size) { index ->
+                        val item = CourseCatalog.courses[index]
+                        Surface(color = Color.White, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth().clickable { courseId = item.id; tab = "Учиться"; onSaveSettings(item.id, dailyGoal) }) {
+                            Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                                FlagBadge(item.id, Modifier.size(width = 42.dp, height = 28.dp))
+                                Spacer(Modifier.width(12.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text(item.name, color = Ink, fontWeight = FontWeight.Bold)
+                                    Text(item.nativeName + " · " + item.firstUnit.title, color = Muted, fontSize = 12.sp)
+                                }
+                                Text(if (item.id == courseId) "Активен" else "Открыть", color = Blue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                    item { Text("Главы · " + course.name, color = Ink, fontWeight = FontWeight.Bold, fontSize = 18.sp) }
+                    items(course.units.size) { index ->
+                        val chapter = course.units[index]
+                        Surface(color = Color.White, shape = RoundedCornerShape(14.dp)) {
+                            Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text("ГЛАВА ${index + 1}", color = Blue, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Spacer(Modifier.width(10.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text(chapter.title, color = Ink, fontWeight = FontWeight.SemiBold)
+                                    Text(chapter.goal, color = Muted, fontSize = 11.sp)
+                                }
+                                Icon(Icons.Default.LockOpen, null, tint = Green)
+                            }
+                        }
+                    }
+                    item { StatCard("Ежедневная цель", "$dailyGoal минут") }
                     item { StatCard("Всего опыта", "$xp XP") }
                     item { StatCard("Серия занятий", "$streak дней") }
                     item { StatCard("Открытый этап", "$stage") }
