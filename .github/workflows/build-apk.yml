@@ -33,6 +33,10 @@ jobs:
           convert "Glossy Blue Monogram Emblem.ico[0]" -background none -resize 96x96 app/src/main/res/mipmap-xhdpi/ic_launcher.png
           convert "Glossy Blue Monogram Emblem.ico[0]" -background none -resize 144x144 app/src/main/res/mipmap-xxhdpi/ic_launcher.png
           convert "Glossy Blue Monogram Emblem.ico[0]" -background none -resize 192x192 app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+      - name: Prepare StageCue font
+        run: |
+          mkdir -p app/src/main/res/font
+          cp Nomor1Demo-yY5y2.ttf app/src/main/res/font/nomor1.ttf
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
       - name: Upload APK
