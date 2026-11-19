@@ -534,37 +534,62 @@ private fun WritingCard(task: WritingTask) {
 
 @Composable
 private fun StageCard(stage: Int, onStart: () -> Unit, onSkip: () -> Unit) {
-    Surface(color = Card, shape = RoundedCornerShape(20.dp)) {
-        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Surface(color = Card, shape = RoundedCornerShape(24.dp)) {
+        Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(15.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(color = CardRaised, shape = RoundedCornerShape(12.dp)) {
-                    Icon(Icons.Default.School, null, tint = Blue, modifier = Modifier.padding(11.dp).size(22.dp))
+                Surface(color = CardRaised, shape = RoundedCornerShape(14.dp)) {
+                    Icon(Icons.Default.School, null, tint = Blue, modifier = Modifier.padding(12.dp).size(23.dp))
                 }
-                Spacer(Modifier.width(11.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(ui("ЭТАП", "STAGE") + " $stage", color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                    Text(ui("Знакомство и приветствия", "Introductions and greetings"), color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Text(ui("ТЕКУЩИЙ ЭТАП", "CURRENT STAGE") + "  $stage", color = Blue, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.3.sp)
+                    Text(ui("Первые фразы", "First phrases"), color = Ink, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                    Text(ui("Освой базу и переходи дальше", "Learn the basics and move on"), color = Muted, fontSize = 12.sp)
                 }
-                Icon(Icons.Default.LockOpen, null, tint = Green)
+                Icon(Icons.Default.EmojiEvents, null, tint = Gold, modifier = Modifier.size(25.dp))
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                repeat(4) { index ->
-                    Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Surface(color = if (index == 0) Blue else Pale, shape = CircleShape) {
-                            Box(Modifier.size(42.dp), contentAlignment = Alignment.Center) {
-                                Icon(if (index == 0) Icons.Default.PlayArrow else if (index == 3) Icons.Default.EmojiEvents else Icons.Default.MenuBook, null, tint = if (index == 0) Color.White else Muted)
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Surface(color = Green, shape = CircleShape) {
+                        Icon(Icons.Default.Check, null, tint = Color(0xFF102A36), modifier = Modifier.padding(9.dp).size(20.dp))
+                    }
+                    Box(Modifier.width(3.dp).height(17.dp).background(Blue.copy(alpha = 0.55f)))
+                    Surface(color = Blue, shape = CircleShape) {
+                        Icon(Icons.Default.MenuBook, null, tint = Color.White, modifier = Modifier.padding(10.dp).size(20.dp))
+                    }
+                    Box(Modifier.width(3.dp).height(17.dp).background(Line))
+                    Surface(color = CardRaised, shape = CircleShape) {
+                        Icon(Icons.Default.Lock, null, tint = Muted, modifier = Modifier.padding(10.dp).size(20.dp))
+                    }
+                }
+                Spacer(Modifier.width(13.dp))
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(ui("Основы", "Basics"), color = Ink, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Text(ui("Пройдено", "Completed"), color = Green, fontSize = 11.sp)
+                    }
+                    Surface(color = CardRaised, shape = RoundedCornerShape(15.dp), modifier = Modifier.fillMaxWidth()) {
+                        Row(Modifier.padding(horizontal = 13.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                Text(ui("Первые фразы", "First phrases"), color = Ink, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                Text(ui("Текущий урок", "Current lesson"), color = Blue, fontSize = 11.sp)
                             }
+                            Icon(Icons.Default.AutoAwesome, null, tint = Blue)
                         }
-                        Spacer(Modifier.height(5.dp))
-                        Text(if (index == 3) ui("Тест", "Test") else ui("Урок ${index + 1}", "Lesson ${index + 1}"), fontSize = 10.sp, color = Muted)
+                    }
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(ui("Повседневная лексика", "Everyday vocabulary"), color = Muted, fontSize = 13.sp)
+                        Text(ui("Следующий этап", "Next stage"), color = Muted.copy(alpha = 0.75f), fontSize = 10.sp)
                     }
                 }
             }
-            Button(onClick = onStart, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(13.dp)) {
-                Text(ui("Продолжить урок", "Continue lesson"), fontWeight = FontWeight.Bold)
+            Button(onClick = onStart, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(17.dp)) {
+                Text(ui("Продолжить обучение", "Continue learning") + "  →", fontWeight = FontWeight.Bold)
             }
-            OutlinedButton(onClick = onSkip, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(13.dp)) {
-                Text(ui("Проверить знания и пропустить этап", "Test out of this stage"))
+            TextButton(onClick = onSkip, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Default.Bolt, null, tint = Gold, modifier = Modifier.size(17.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(ui("Проверить знания и пропустить этап", "Take a test to skip this stage"), color = Muted, fontSize = 12.sp)
             }
         }
     }
