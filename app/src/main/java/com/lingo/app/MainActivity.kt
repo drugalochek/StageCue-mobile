@@ -253,10 +253,18 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                 }
                 "Магазин" -> {
                     item { StoreHeader(gems = 120) }
-                    item { StoreItemCard(ui("Звёздная рамка", "Star frame"), ui("Оформление профиля", "Profile decoration"), "80", "✦") }
-                    item { StoreItemCard(ui("Ночная тема", "Night theme"), ui("Тёмно-фиолетовый фон профиля", "Dark purple profile background"), "100", "☾") }
-                    item { StoreItemCard(ui("Золотая корона", "Golden crown"), ui("Праздничный аксессуар маскота", "A festive mascot accessory"), "150", "♛") }
-                    item { StoreItemCard(ui("Эмоция: восторг", "Excited reaction"), ui("Новая реакция медведя", "A new bear reaction"), "60", "★") }
+                    item {
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            StoreItemCard(ui("Звёздная рамка", "Star frame"), ui("Оформление профиля", "Profile decoration"), "80", "✦", Modifier.weight(1f))
+                            StoreItemCard(ui("Ночная тема", "Night theme"), ui("Тёмно-фиолетовый фон", "Dark profile theme"), "100", "☾", Modifier.weight(1f))
+                        }
+                    }
+                    item {
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            StoreItemCard(ui("Золотая корона", "Golden crown"), ui("Аксессуар маскота", "Mascot accessory"), "150", "♛", Modifier.weight(1f))
+                            StoreItemCard(ui("Восторг", "Excited"), ui("Новая эмоция медведя", "New bear emotion"), "60", "★", Modifier.weight(1f))
+                        }
+                    }
                     item { BearSpeech(ui("Собирай награды за занятия. Витрина пока пополняется.", "Earn rewards by studying. More items are coming soon.")) }
                 }
                 else -> {
@@ -679,22 +687,19 @@ private fun StoreHeader(gems: Int) {
 }
 
 @Composable
-private fun StoreItemCard(name: String, description: String, price: String, symbol: String) {
+private fun StoreItemCard(name: String, description: String, price: String, symbol: String, modifier: Modifier = Modifier) {
     var purchased by remember { mutableStateOf(false) }
-    Surface(color = Card, shape = RoundedCornerShape(20.dp)) {
-        Row(Modifier.fillMaxWidth().padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
-            Surface(color = CardRaised, shape = RoundedCornerShape(15.dp)) {
-                Box(Modifier.size(58.dp), contentAlignment = Alignment.Center) {
-                    Text(symbol, color = Gold, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+    Surface(color = Card, shape = RoundedCornerShape(22.dp), modifier = modifier) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 14.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(7.dp)) {
+            Surface(color = CardRaised, shape = RoundedCornerShape(18.dp)) {
+                Box(Modifier.fillMaxWidth().height(92.dp), contentAlignment = Alignment.Center) {
+                    Text(symbol, color = Blue, fontSize = 48.sp, fontWeight = FontWeight.Bold)
                 }
             }
-            Spacer(Modifier.width(13.dp))
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(name, color = Ink, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                Text(description, color = Muted, fontSize = 11.sp)
-                Text("✦ $price", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            }
-            Button(onClick = { purchased = true }, enabled = !purchased, shape = RoundedCornerShape(12.dp), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)) {
+            Text(name, color = Ink, fontWeight = FontWeight.Bold, fontSize = 14.sp, textAlign = TextAlign.Center, maxLines = 1)
+            Text(description, color = Muted, fontSize = 10.sp, textAlign = TextAlign.Center, minLines = 2, maxLines = 2)
+            Text("★ $price", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Button(onClick = { purchased = true }, enabled = !purchased, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(13.dp), contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)) {
                 Text(if (purchased) ui("Выбрано", "Selected") else ui("Открыть", "Unlock"), fontSize = 11.sp)
             }
         }
