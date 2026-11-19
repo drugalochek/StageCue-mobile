@@ -172,7 +172,14 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                         }
                     }
                     item {
-                        Box(Modifier.fillMaxWidth().height(248.dp)) {
+                        Box(
+                            Modifier.fillMaxWidth().height(248.dp)
+                                .background(Brush.radialGradient(
+                                    colors = listOf(Color(0xFF302B78).copy(alpha = .72f), Color(0xFF17163D).copy(alpha = .08f), Color.Transparent),
+                                    center = Offset(160f, 250f), radius = 520f
+                                ))
+                        ) {
+                            AmbientSparkles(Modifier.fillMaxSize())
                             BearMascot(Modifier.align(Alignment.BottomStart).size(238.dp), emotion = bearEmotion)
                             Surface(color = CardRaised, shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp, bottomEnd = 25.dp),
                                 modifier = Modifier.align(Alignment.CenterEnd).padding(end = 3.dp, bottom = 38.dp).widthIn(max = 148.dp)) {
@@ -617,6 +624,26 @@ private fun StageCard(stage: Int, currentTitle: String, currentGoal: String, onS
                 Icon(Icons.Default.Bolt, null, tint = Gold, modifier = Modifier.size(17.dp))
                 Spacer(Modifier.width(6.dp))
                 Text(ui("Проверить знания и пропустить этап", "Take a test to skip this stage"), color = Muted, fontSize = 12.sp)
+            }
+        }
+    }
+}
+
+@Composable
+private fun AmbientSparkles(modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val points = listOf(
+            Offset(size.width * .16f, size.height * .18f) to 3.2f,
+            Offset(size.width * .48f, size.height * .10f) to 2.0f,
+            Offset(size.width * .78f, size.height * .24f) to 2.8f,
+            Offset(size.width * .61f, size.height * .72f) to 1.8f,
+            Offset(size.width * .91f, size.height * .62f) to 2.4f
+        )
+        points.forEachIndexed { index, (point, radius) ->
+            drawCircle(Color(0xFF9D80FF).copy(alpha = if (index % 2 == 0) .78f else .45f), radius = radius.dp.toPx(), center = point)
+            if (index == 0 || index == 2) {
+                drawLine(Color(0xFF9D80FF).copy(alpha = .5f), Offset(point.x - 5.dp.toPx(), point.y), Offset(point.x + 5.dp.toPx(), point.y), 1.dp.toPx())
+                drawLine(Color(0xFF9D80FF).copy(alpha = .5f), Offset(point.x, point.y - 5.dp.toPx()), Offset(point.x, point.y + 5.dp.toPx()), 1.dp.toPx())
             }
         }
     }
