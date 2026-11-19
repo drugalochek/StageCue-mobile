@@ -23,6 +23,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -65,6 +69,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSa
     var selected by remember { mutableIntStateOf(-1) }
     var correct by remember { mutableIntStateOf(0) }
     var feedback by remember { mutableStateOf(false) }
+    var bearEmotion by remember { mutableIntStateOf(1) }
     val questions = listOf(
         Triple("Как сказать «Привет»?", listOf("Hello", "Goodbye", "Thanks"), 0),
         Triple("Выбери перевод «Спасибо»", listOf("Please", "Thank you", "Sorry"), 1),
@@ -75,10 +80,12 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSa
     val q = questions[question.coerceIn(0, questions.lastIndex)]
     fun finishTest() {
         if (correct >= 3) {
+            bearEmotion = 8
             if (skipTest) stage += 1
             xp += if (skipTest) 80 else 25
             onSave(stage, xp)
         }
+        if (correct < 3) bearEmotion = 13
         lesson = false
         skipTest = false
         question = 0
@@ -146,7 +153,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSa
                                     LinearProgressIndicator(progress = { 0.35f }, modifier = Modifier.fillMaxWidth().height(7.dp), color = Blue, trackColor = Line)
                                 }
                                 Spacer(Modifier.width(10.dp))
-                                BearMascot(Modifier.size(104.dp))
+                                BearMascot(Modifier.size(104.dp), emotion = bearEmotion)
                             }
                         }
                     }
@@ -207,7 +214,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSa
                     Text(q.first, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                     q.second.forEachIndexed { i, answer ->
                         OutlinedButton(
-                            onClick = { if (!feedback) { selected = i; feedback = true; if (i == q.third) correct++ } },
+                            onClick = { if (!feedback) { selected = i; feedback = true; if (i == q.third) { correct++; bearEmotion = 1 } else { bearEmotion = 6 } } },
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.outlinedButtonColors(containerColor = when { feedback && i == q.third -> Color(0xFFE8F7EF); feedback && i == selected -> Color(0xFFFFEEEE); else -> Color.White })
                         ) { Text(answer, color = Ink) }
@@ -265,44 +272,33 @@ private fun StageCard(stage: Int, onStart: () -> Unit, onSkip: () -> Unit) {
 }
 
 @Composable
-private fun BearMascot(modifier: Modifier = Modifier) {
+private fun BearMascot(modifier: Modifier = Modifier, emotion: Int = 1) {
+    val sprites = ImageBitmap.imageResource(R.drawable.bear_emotions)
     val transition = rememberInfiniteTransition(label = "bear")
-    val bob by transition.animateFloat(initialValue = 0f, targetValue = 5f, animationSpec = infiniteRepeatable(tween(1100, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "bob")
+    val bob by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 3f,
+        animationSpec = infiniteRepeatable(tween(1300, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "bob"
+    )
     Canvas(modifier.offset(y = bob.dp)) {
-        val s = size.minDimension
-        val cx = size.width / 2
-        val cy = size.height / 2
-        val fur = Color(0xFF172D52)
-        drawCircle(Color(0xFFE8EDFF), s * .48f, Offset(cx, cy + s * .02f))
-        drawCircle(fur, s * .31f, Offset(cx, cy + s * .05f))
-        drawCircle(fur, s * .105f, Offset(cx - s * .22f, cy - s * .18f))
-        drawCircle(fur, s * .105f, Offset(cx + s * .22f, cy - s * .18f))
-        drawCircle(Color(0xFF314D79), s * .055f, Offset(cx - s * .22f, cy - s * .18f))
-        drawCircle(Color(0xFF314D79), s * .055f, Offset(cx + s * .22f, cy - s * .18f))
-        drawCircle(Color(0xFF203D68), s * .245f, Offset(cx, cy + s * .02f))
-        drawCircle(Color(0xFFDAE3F5), s * .13f, Offset(cx, cy + s * .11f))
-        drawCircle(Color.White, s * .025f, Offset(cx - s * .085f, cy - s * .02f))
-        drawCircle(Color.White, s * .025f, Offset(cx + s * .085f, cy - s * .02f))
-        drawCircle(Color(0xFF101827), s * .012f, Offset(cx - s * .085f, cy - s * .02f))
-        drawCircle(Color(0xFF101827), s * .012f, Offset(cx + s * .085f, cy - s * .02f))
-        drawOval(Color(0xFF101827), Offset(cx - s * .035f, cy + s * .075f), Size(s * .07f, s * .045f))
-        val star = Color(0xFFFFD66B)
-        val p = Path()
-        for (i in 0 until 10) {
-            val r = if (i % 2 == 0) s * .052f else s * .023f
-            val a = Math.PI * i / 5 - Math.PI / 2
-            val pt = Offset(cx + kotlin.math.cos(a).toFloat() * r, cy - s * .18f + kotlin.math.sin(a).toFloat() * r)
-            if (i == 0) p.moveTo(pt.x, pt.y) else p.lineTo(pt.x, pt.y)
-        }
-        p.close()
-        drawPath(p, star)
+        val frameWidth = sprites.width / 4
+        val frameHeight = sprites.height / 4
+        val frame = emotion.coerceIn(0, 15)
+        drawImage(
+            image = sprites,
+            srcOffset = IntOffset((frame % 4) * frameWidth, (frame / 4) * frameHeight),
+            srcSize = IntSize(frameWidth, frameHeight),
+            dstOffset = IntOffset.Zero,
+            dstSize = IntSize(size.width.toInt(), size.height.toInt())
+        )
     }
 }
 
 @Composable
-private fun BearSpeech(message: String) {
+private fun BearSpeech(message: String, emotion: Int = 2) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        BearMascot(Modifier.size(88.dp))
+        BearMascot(Modifier.size(88.dp), emotion = emotion)
         Spacer(Modifier.width(10.dp))
         Surface(color = Color.White, shape = RoundedCornerShape(18.dp)) {
             Text(message, Modifier.padding(14.dp), color = Ink, fontSize = 14.sp)
