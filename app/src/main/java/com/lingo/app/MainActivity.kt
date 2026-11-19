@@ -170,6 +170,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSa
                     item { DialogueCard(course = course) }
                     item { ReadingCard(reading = unit.reading) }
                     items(CourseCatalog.grammar(course.id).size) { index -> GrammarCard(point = CourseCatalog.grammar(course.id)[index]) }
+                    CourseCatalog.writing(course.id)?.let { task -> item { WritingCard(task = task) } }
                     item {
                         Text("Ежедневная цель", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Ink)
                         Surface(color = Color.White, shape = RoundedCornerShape(18.dp)) {
@@ -320,6 +321,39 @@ private fun GrammarCard(point: GrammarPoint) {
                     Text(translation, color = Muted, fontSize = 12.sp)
                 }
             }
+        }
+    }
+}
+
+
+@Composable
+private fun WritingCard(task: WritingTask) {
+    var answer by remember(task.title) { mutableStateOf("") }
+    var showSample by remember(task.title) { mutableStateOf(false) }
+    Surface(color = Color.White, shape = RoundedCornerShape(20.dp)) {
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("СОБСТВЕННЫЙ ТЕКСТ", color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            Text(task.title, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(task.situation, color = Muted, fontSize = 13.sp, lineHeight = 19.sp)
+            Text(task.instruction, color = Ink, fontSize = 14.sp, lineHeight = 21.sp)
+            OutlinedTextField(
+                value = answer,
+                onValueChange = { answer = it },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 4,
+                placeholder = { Text(task.starter, color = Muted) },
+                label = { Text("Твой вариант") }
+            )
+            TextButton(onClick = { showSample = !showSample }, contentPadding = PaddingValues(0.dp)) {
+                Text(if (showSample) "Скрыть пример" else "Посмотреть пример ответа")
+            }
+            AnimatedVisibility(showSample) {
+                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Text(task.sample, color = Ink, fontSize = 14.sp, lineHeight = 21.sp)
+                    Text(task.translation, color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
+                }
+            }
+            Text("Не копируй пример дословно. Меняй детали и строй собственные фразы.", color = Muted, fontSize = 12.sp)
         }
     }
 }
