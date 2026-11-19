@@ -70,13 +70,11 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSa
     var correct by remember { mutableIntStateOf(0) }
     var feedback by remember { mutableStateOf(false) }
     var bearEmotion by remember { mutableIntStateOf(1) }
-    val questions = listOf(
-        Triple("Как сказать «Привет»?", listOf("Hello", "Goodbye", "Thanks"), 0),
-        Triple("Выбери перевод «Спасибо»", listOf("Please", "Thank you", "Sorry"), 1),
-        Triple("Что значит «Good morning»?", listOf("Добрый вечер", "Доброе утро", "Спокойной ночи"), 1),
-        Triple("Выбери правильное слово: I ___ Alex.", listOf("am", "is", "are"), 0),
-        Triple("Как сказать «Пока»?", listOf("Hello", "Goodbye", "Maybe"), 1)
-    )
+    var courseId by remember { mutableStateOf("en") }
+    var languageMenuOpen by remember { mutableStateOf(false) }
+    val course = CourseCatalog.find(courseId)
+    val unit = course.firstUnit
+    val questions = unit.quiz
     val q = questions[question.coerceIn(0, questions.lastIndex)]
     fun finishTest() {
         if (correct >= 3) {
@@ -143,13 +141,14 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSa
             }
             when (tab) {
                 "Учиться" -> {
+                    item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it; question = 0; selected = -1; feedback = false }) }
                     item {
                         Surface(color = Color.White, shape = RoundedCornerShape(22.dp)) {
                             Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Text("АНГЛИЙСКИЙ", color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                                    Text("Первые шаги", color = Ink, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                                    Text("Этап $stage · Основы общения", color = Muted, fontSize = 13.sp)
+                                    Text(course.name.uppercase(), color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                                    Text(unit.title, color = Ink, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                                    Text(course.nativeName + " · " + unit.goal, color = Muted, fontSize = 13.sp)
                                     LinearProgressIndicator(progress = { 0.35f }, modifier = Modifier.fillMaxWidth().height(7.dp), color = Blue, trackColor = Line)
                                 }
                                 Spacer(Modifier.width(10.dp))
@@ -166,6 +165,8 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSa
                     item {
                         StageCard(stage, onStart = { lesson = true; skipTest = false }, onSkip = { lesson = true; skipTest = true })
                     }
+                    item { DialogueCard(course = course) }
+                    item { ReadingCard(reading = unit.reading) }
                     item {
                         Text("Ежедневная цель", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Ink)
                         Surface(color = Color.White, shape = RoundedCornerShape(18.dp)) {
@@ -189,9 +190,8 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSa
                 }
                 "Словарь" -> {
                     item { Text("Новые слова появятся здесь после уроков.", color = Muted, fontSize = 15.sp) }
-                    item { WordCard("hello", "привет", "Приветствие") }
-                    item { WordCard("thank you", "спасибо", "Вежливые выражения") }
-                    item { WordCard("good morning", "доброе утро", "Приветствие") }
+                                        item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it }) }
+                    items(unit.vocabulary.size) { index -> val word = unit.vocabulary[index]; WordCard(word.term, word.meaning, word.note) }
                 }
                 else -> {
                     item { BearSpeech("Это твой профиль. Тут можно будет следить за прогрессом. Не переживай, я тоже удивлён.") }
@@ -212,29 +212,91 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, onSa
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         BearMascot(Modifier.size(76.dp), emotion = bearEmotion)
                         Spacer(Modifier.width(10.dp))
-                        Text(if (feedback && selected == q.third) "Точно! Это правильный ответ." else if (feedback) "Промах. Попробуй запомнить." else "Выбирай ответ. Я проверю.", color = Muted, fontSize = 13.sp)
+                        Text(if (feedback && selected == q.answer) "Точно! Это правильный ответ." else if (feedback) "Промах. " + q.explanation else "Выбирай ответ. Я проверю.", color = Muted, fontSize = 13.sp)
                     }
-                    Text("Вопрос ${question + 1} из 5", color = Muted, fontSize = 12.sp)
-                    LinearProgressIndicator(progress = { (question + 1) / 5f }, modifier = Modifier.fillMaxWidth())
-                    Text(q.first, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-                    q.second.forEachIndexed { i, answer ->
+                    Text("Вопрос ${question + 1} из ${questions.size}", color = Muted, fontSize = 12.sp)
+                    LinearProgressIndicator(progress = { (question + 1) / questions.size.toFloat() }, modifier = Modifier.fillMaxWidth())
+                    Text(q.prompt, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    q.options.forEachIndexed { i, answer ->
                         OutlinedButton(
-                            onClick = { if (!feedback) { selected = i; feedback = true; if (i == q.third) { correct++; bearEmotion = 1 } else { bearEmotion = 6 } } },
+                            onClick = { if (!feedback) { selected = i; feedback = true; if (i == q.answer) { correct++; bearEmotion = 1 } else { bearEmotion = 6 } } },
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.outlinedButtonColors(containerColor = when { feedback && i == q.third -> Color(0xFFE8F7EF); feedback && i == selected -> Color(0xFFFFEEEE); else -> Color.White })
+                            colors = ButtonDefaults.outlinedButtonColors(containerColor = when { feedback && i == q.answer -> Color(0xFFE8F7EF); feedback && i == selected -> Color(0xFFFFEEEE); else -> Color.White })
                         ) { Text(answer, color = Ink) }
                     }
-                    if (feedback) Text(if (selected == q.third) "Верно. Медведь одобряет." else "Не совсем. Запомним и двигаемся дальше.", color = if (selected == q.third) Green else Color(0xFFD36A6A), fontSize = 13.sp)
+                    if (feedback) Text(if (selected == q.answer) "Верно. " + q.explanation else "Не совсем. " + q.explanation, color = if (selected == q.third) Green else Color(0xFFD36A6A), fontSize = 13.sp)
                 }
             },
             confirmButton = {
                 TextButton(onClick = {
                     if (!feedback) return@TextButton
-                    if (question == 4) finishTest() else { question++; selected = -1; feedback = false }
-                }) { Text(if (question == 4) "Завершить" else "Далее") }
+                    if (question == questions.lastIndex) finishTest() else { question++; selected = -1; feedback = false }
+                }) { Text(if (question == questions.lastIndex) "Завершить" else "Далее") }
             },
             dismissButton = { TextButton(onClick = { lesson = false; question = 0; correct = 0; selected = -1; feedback = false }) { Text("Выйти") } }
         )
+    }
+}
+
+
+@Composable
+private fun CoursePicker(course: LanguageCourse, expanded: Boolean, onExpandedChange: (Boolean) -> Unit, onSelect: (String) -> Unit) {
+    Box {
+        OutlinedButton(onClick = { onExpandedChange(true) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp)) {
+            Text(course.flag + "  " + course.name + " · " + course.nativeName, modifier = Modifier.weight(1f), textAlign = TextAlign.Start)
+            Icon(Icons.Default.ExpandMore, contentDescription = null)
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { onExpandedChange(false) }) {
+            CourseCatalog.courses.forEach { item ->
+                DropdownMenuItem(
+                    text = { Text(item.flag + "  " + item.name + " · " + item.nativeName) },
+                    onClick = { onSelect(item.id); onExpandedChange(false) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DialogueCard(course: LanguageCourse) {
+    val dialogue = course.firstUnit.dialogue
+    Surface(color = Color.White, shape = RoundedCornerShape(20.dp)) {
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("ДИАЛОГ · " + course.nativeName.uppercase(), color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            Text(course.firstUnit.title, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            dialogue.forEach { line ->
+                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Text(line.speaker, color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(line.text, color = Ink, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                    Text(line.translation, color = Muted, fontSize = 12.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReadingCard(reading: ReadingText) {
+    Surface(color = Color.White, shape = RoundedCornerShape(20.dp)) {
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+            Text("ЧИТАЕМ И ПОНИМАЕМ", color = Blue, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            Text(reading.title, color = Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(reading.body, color = Ink, fontSize = 15.sp, lineHeight = 22.sp)
+            var showTranslation by remember { mutableStateOf(false) }
+            TextButton(onClick = { showTranslation = !showTranslation }, contentPadding = PaddingValues(0.dp)) {
+                Text(if (showTranslation) "Скрыть перевод" else "Показать перевод")
+            }
+            AnimatedVisibility(showTranslation) { Text(reading.translation, color = Muted, fontSize = 14.sp, lineHeight = 21.sp) }
+            reading.questions.forEach { (prompt, answer) ->
+                var showAnswer by remember { mutableStateOf(false) }
+                Column {
+                    Text(prompt, color = Ink, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    TextButton(onClick = { showAnswer = !showAnswer }, contentPadding = PaddingValues(0.dp)) {
+                        Text(if (showAnswer) answer else "Показать ответ")
+                    }
+                }
+            }
+        }
     }
 }
 
