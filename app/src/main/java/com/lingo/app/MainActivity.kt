@@ -111,7 +111,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
     fun finishTest() {
         if (correct >= 3) {
             bearEmotion = 8
-            if (skipTest) stage += 1
+            if (skipTest) stage = (stage + 1).coerceAtMost(course.units.size)
             xp += if (skipTest) 80 else 25
             onSave(stage, xp)
         }
@@ -222,7 +222,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                             Icon(Icons.Default.EmojiEvents, null, tint = Gold, modifier = Modifier.size(27.dp))
                         }
                     }
-                    item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it; question = 0; selected = -1; feedback = false; onSaveSettings(it, dailyGoal) }) }
+                    item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it; stage = 1; question = 0; selected = -1; feedback = false; onSaveSettings(it, dailyGoal); onSave(stage, xp) }) }
                     item { StageCard(stage, unit.title, unit.goal, onStart = { lesson = true; skipTest = false }, onSkip = { lesson = true; skipTest = true }) }
                     item { Text(ui("Материалы курса", "Course materials"), color = Ink, fontWeight = FontWeight.Bold, fontSize = 18.sp) }
                     item { DialogueCard(course = course) }
@@ -233,8 +233,8 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                         Surface(color = Card, shape = RoundedCornerShape(20.dp)) {
                             Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
                                 Text(ui("Ежедневная цель", "Daily goal"), color = Ink, fontWeight = FontWeight.Bold)
-                                Text(if (AppLanguage.isEnglish) "$dailyGoal minutes" else "$dailyGoal минут", color = Muted)
-                                LinearProgressIndicator(progress = { 0.2f }, modifier = Modifier.fillMaxWidth().height(7.dp), color = Blue, trackColor = Line)
+                                Text(if (AppLanguage.isEnglish) "$dailyGoal minutes a day" else "$dailyGoal минут в день", color = Muted)
+                                Text(ui("Счётчик времени пока не подключён — здесь не показываем выдуманный прогресс.", "Time tracking is not connected yet, so no progress is fabricated here."), color = Muted, fontSize = 11.sp, lineHeight = 16.sp)
                             }
                         }
                     }
@@ -264,8 +264,8 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                         }
                     }
                     item { Text(ui("Активные квесты", "Active quests"), color = Ink, fontSize = 17.sp, fontWeight = FontWeight.Bold) }
-                    item { QuestCard(ui("Выучи 20 новых слов", "Learn 20 new words"), ui("12 / 20 изучено", "12 / 20 learned"), "12 / 20", Icons.Default.Star) }
-                    item { QuestCard(ui("Пройди 3 аудирования", "Complete 3 listening tasks"), ui("1 / 3 выполнено", "1 / 3 completed"), "1 / 3", Icons.Default.Headphones) }
+                    item { QuestCard(ui("Заверши 3 урока", "Complete 3 lessons"), ui("$completedLessons / 3 за эту сессию", "$completedLessons / 3 this session"), "$completedLessons / 3", Icons.Default.MenuBook) }
+                    item { QuestCard(ui("Продвинься по курсу", "Make progress in your course"), ui("Этап $stage из ${course.units.size}", "Stage $stage of ${course.units.size}"), "$stage / ${course.units.size}", Icons.Default.School) }
                     item { QuestCard(ui("Заработай 50 XP", "Earn 50 XP"), "$xp / 50 XP", "$xp / 50", Icons.Default.Bolt) }
                 }
                 "Магазин" -> {
@@ -310,7 +310,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                     }
                     item { AppLanguageSettingsCard(expanded = appLanguageMenuOpen, onExpandedChange = { appLanguageMenuOpen = it }, onSelect = { AppLanguage.changePreference(it); onSaveAppLanguage(it); appLanguageMenuOpen = false }) }
                     item { Text(ui("Мои курсы", "My courses"), color = Ink, fontWeight = FontWeight.Bold, fontSize = 19.sp) }
-                    item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it; onSaveSettings(it, dailyGoal) }) }
+                    item { CoursePicker(course = course, expanded = languageMenuOpen, onExpandedChange = { languageMenuOpen = it }, onSelect = { courseId = it; stage = 1; onSaveSettings(it, dailyGoal); onSave(stage, xp) }) }
                     items(CourseCatalog.courses.size) { index ->
                         val item = CourseCatalog.courses[index]
                         Surface(color = Card, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth().clickable { courseId = item.id; tab = "Главная"; onSaveSettings(item.id, dailyGoal) }) {
@@ -344,7 +344,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
             onComplete = { score, total ->
                 xp += score * 5
                 completedLessons++
-                if (score >= total * 0.7f) stage++
+                if (score >= total * 0.7f) stage = (stage + 1).coerceAtMost(course.units.size)
                 bearEmotion = if (score >= total * 0.7f) 8 else 13
                 onSave(stage, xp)
                 lesson = false
