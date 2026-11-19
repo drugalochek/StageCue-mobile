@@ -165,7 +165,7 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = Blue, modifier = Modifier.size(24.dp))
+                            Icon(Icons.Default.Star, contentDescription = null, tint = Blue, modifier = Modifier.size(24.dp))
                             Spacer(Modifier.width(8.dp))
                             Text("Lingo", fontSize = 25.sp, color = Ink, fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.5).sp)
                         }
@@ -582,7 +582,7 @@ private fun StageCard(stage: Int, onStart: () -> Unit, onSkip: () -> Unit) {
                                 Text(ui("Первые фразы", "First phrases"), color = Ink, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                 Text(ui("Текущий урок", "Current lesson"), color = Blue, fontSize = 11.sp)
                             }
-                            Icon(Icons.Default.AutoAwesome, null, tint = Blue)
+                            Icon(Icons.Default.Star, null, tint = Blue)
                         }
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
