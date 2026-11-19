@@ -4,6 +4,7 @@ data class VocabEntry(val term: String, val meaning: String, val example: String
 data class DialogueLine(val speaker: String, val text: String, val translation: String)
 data class ReadingText(val title: String, val body: String, val translation: String, val questions: List<Pair<String, String>>)
 data class QuizItem(val prompt: String, val options: List<String>, val answer: Int, val explanation: String)
+data class GrammarPoint(val title: String, val pattern: String, val explanation: String, val examples: List<Pair<String, String>>)
 data class LessonUnit(
     val title: String,
     val goal: String,
@@ -230,6 +231,44 @@ object CourseCatalog {
             )
         ))
     )
+
+
+    val grammarByLanguage: Map<String, List<GrammarPoint>> = mapOf(
+        "en" to listOf(
+            GrammarPoint("Вопросы с do / does", "Do / Does + subject + verb?", "В Present Simple вспомогательный do или does ставится перед подлежащим. После does основной глагол остаётся в начальной форме.", listOf("Do you work nearby?" to "Ты работаешь неподалёку?", "Does she know the area?" to "Она знает этот район?")),
+            GrammarPoint("Present Perfect для недавнего опыта", "have / has + past participle", "Используется, когда прошлое действие связано с настоящим результатом или опытом. Не путай с конкретным временем в прошлом.", listOf("I've just arrived." to "Я только что приехал.", "Have you ever tried it?" to "Ты когда-нибудь это пробовал?"))
+        ),
+        "es" to listOf(
+            GrammarPoint("Acabar de + infinitivo", "acabar (conjugado) + de + infinitivo", "Конструкция передаёт действие, которое произошло совсем недавно.", listOf("Acabo de llegar." to "Я только что приехал.", "Acaban de abrir." to "Они только что открылись.")),
+            GrammarPoint("Ser и estar", "ser = характеристика; estar = состояние / положение", "Оба глагола переводятся как «быть», но используются в разных контекстах. Ser описывает идентичность и устойчивые признаки, estar — состояние и местоположение.", listOf("Es amable." to "Он добрый.", "Está cansada." to "Она устала."))
+        ),
+        "de" to listOf(
+            GrammarPoint("Позиция глагола в главном предложении", "Подлежащее + глагол + ...", "В обычном повествовательном предложении спрягаемый глагол занимает вторую позицию. На первом месте может стоять не только подлежащее.", listOf("Heute arbeite ich zu Hause." to "Сегодня я работаю дома.", "Morgen fährt Paul nach Berlin." to "Завтра Пауль едет в Берлин.")),
+            GrammarPoint("Отделяемые приставки", "приставка ... глагол в конце", "В главном предложении отделяемая приставка обычно уходит в конец.", listOf("Ich stehe um sieben auf." to "Я встаю в семь.", "Der Zug kommt pünktlich an." to "Поезд прибывает вовремя."))
+        ),
+        "fr" to listOf(
+            GrammarPoint("Passé récent", "venir (au présent) + de + infinitif", "Так говорят о действии, которое только что произошло.", listOf("Je viens d'arriver." to "Я только что приехал.", "Elle vient de partir." to "Она только что ушла.")),
+            GrammarPoint("Отрицание ne ... pas", "ne + verbe + pas", "В нейтральной письменной речи отрицание обрамляет спрягаемый глагол. В разговорной речи ne часто опускают.", listOf("Je ne sais pas." to "Я не знаю.", "On n'habite pas ici." to "Мы здесь не живём."))
+        ),
+        "it" to listOf(
+            GrammarPoint("Глаголы на -are, -ere, -ire", "parlare → parlo; prendere → prendo; dormire → dormo", "Окончание инфинитива меняется в зависимости от лица. Сначала выучи регулярные модели, затем исключения.", listOf("Parlo italiano." to "Я говорю по-итальянски.", "Prendiamo un caffè." to "Мы выпьем кофе.")),
+            GrammarPoint("Piacere", "mi / ti / gli / le + piace / piacciono", "В итальянском нравится буквально «мне нравится». Форма piace используется с единственным числом или инфинитивом, piacciono — с множественным.", listOf("Mi piace la musica." to "Мне нравится музыка.", "Mi piacciono i libri." to "Мне нравятся книги."))
+        ),
+        "pt" to listOf(
+            GrammarPoint("Ser и estar", "ser = более постоянная характеристика; estar = состояние / место", "Выбор глагола меняет смысл. Сравни описание человека и его временное состояние.", listOf("Ela é simpática." to "Она приветливая.", "Ela está cansada." to "Она устала.")),
+            GrammarPoint("Личные окончания настоящего времени", "eu falo; tu falas; ele fala; nós falamos", "Окончание глагола показывает лицо. Варианты обращения и произношение различаются между регионами.", listOf("Nós trabalhamos aqui." to "Мы работаем здесь.", "Eles vivem perto." to "Они живут рядом."))
+        ),
+        "tr" to listOf(
+            GrammarPoint("Отрицание именного сказуемого", "isim / sıfat + değil + личное окончание", "Değil образует отрицание в именных предложениях. Личное окончание присоединяется к değil.", listOf("Ben öğrenci değilim." to "Я не студент.", "O hazır değil." to "Он не готов.")),
+            GrammarPoint("Порядок слов", "Подлежащее + дополнение + глагол", "В нейтральном турецком предложении глагол обычно стоит в конце. Суффиксы помогают понять роль слов.", listOf("Ben kitap okuyorum." to "Я читаю книгу.", "Ayşe kahve içiyor." to "Айше пьёт кофе."))
+        ),
+        "ja" to listOf(
+            GrammarPoint("Частицы は и が", "тема は; грамматический субъект が", "は обозначает тему высказывания, а が часто выделяет субъект или новую важную информацию. Выбор зависит от контекста.", listOf("私は学生です。" to "Я студент.", "だれが来ますか。" to "Кто придёт?")),
+            GrammarPoint("Вежливая форма ます", "основа глагола + ます", "Форма ます используется в вежливой нейтральной речи. Она не меняет основное значение глагола, но меняет уровень вежливости.", listOf("毎日勉強します。" to "Я учусь каждый день.", "水を飲みます。" to "Я пью воду."))
+        )
+    )
+
+    fun grammar(id: String): List<GrammarPoint> = grammarByLanguage[id].orEmpty()
 
     fun find(id: String): LanguageCourse = courses.firstOrNull { it.id == id } ?: courses.first()
 }
