@@ -223,9 +223,9 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                     }
                 }
                 "Квесты" -> {
-                    item { QuestCard("Первый контакт", "Пройди один урок сегодня", "0 / 1", Icons.Default.ChatBubbleOutline) }
-                    item { QuestCard("Разминка для памяти", "Повтори 5 знакомых слов", "0 / 5", Icons.Default.Psychology) }
-                    item { QuestCard("Не сбавляй темп", "Заработай 30 XP", "$xp / 30 XP", Icons.Default.Bolt) }
+                    item { QuestCard(ui("Первый контакт", "First steps"), ui("Пройди один урок сегодня", "Complete one lesson today"), "0 / 1", Icons.Default.ChatBubbleOutline) }
+                    item { QuestCard(ui("Разминка для памяти", "Memory warm-up"), ui("Повтори 5 знакомых слов", "Review 5 familiar words"), "0 / 5", Icons.Default.Psychology) }
+                    item { QuestCard(ui("Не сбавляй темп", "Keep it going"), ui("Заработай 30 XP", "Earn 30 XP"), "$xp / 30 XP", Icons.Default.Bolt) }
                     item { BearSpeech(ui("У тебя три квеста. Даже я столько дел одновременно не планировал.", "Three quests. Even I would not plan that many things at once.")) }
                 }
                 "Словарь" -> {
@@ -235,10 +235,10 @@ private fun LingoApp(initialStage: Int, initialXp: Int, initialStreak: Int, init
                 }
                 "Магазин" -> {
                     item { StoreHeader(gems = 120) }
-                    item { StoreItemCard("Звёздная рамка", "Оформление профиля", "80", "✦") }
-                    item { StoreItemCard("Ночная тема", "Тёмно-фиолетовый фон профиля", "100", "☾") }
-                    item { StoreItemCard("Золотая корона", "Праздничный аксессуар маскота", "150", "♛") }
-                    item { StoreItemCard("Эмоция: восторг", "Новая реакция медведя", "60", "★") }
+                    item { StoreItemCard(ui("Звёздная рамка", "Star frame"), ui("Оформление профиля", "Profile decoration"), "80", "✦") }
+                    item { StoreItemCard(ui("Ночная тема", "Night theme"), ui("Тёмно-фиолетовый фон профиля", "Dark purple profile background"), "100", "☾") }
+                    item { StoreItemCard(ui("Золотая корона", "Golden crown"), ui("Праздничный аксессуар маскота", "A festive mascot accessory"), "150", "♛") }
+                    item { StoreItemCard(ui("Эмоция: восторг", "Excited reaction"), ui("Новая реакция медведя", "A new bear reaction"), "60", "★") }
                     item { BearSpeech(ui("Собирай награды за занятия. Витрина пока пополняется.", "Earn rewards by studying. More items are coming soon.")) }
                 }
                 else -> {
