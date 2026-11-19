@@ -716,11 +716,67 @@ private fun StoreHeader(gems: Int) {
 
 @Composable
 private fun StoreItemCard(name: String, description: String, price: String, symbol: String, modifier: Modifier = Modifier) {
+    val kind = when (symbol) { "♫" -> "headphones"; "◎" -> "glasses"; "▤" -> "scarf"; else -> "cap" }
     Surface(color = Card, shape = RoundedCornerShape(22.dp), modifier = modifier) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 13.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Surface(color = CardRaised, shape = RoundedCornerShape(18.dp)) {
-                Box(Modifier.fillMaxWidth().height(104.dp), contentAlignment = Alignment.Center) {
-                    Text(symbol, color = Blue, fontSize = 54.sp, fontWeight = FontWeight.Bold)
+            Box(
+                Modifier.fillMaxWidth().height(116.dp).clip(RoundedCornerShape(18.dp))
+                    .background(Brush.verticalGradient(listOf(Color(0xFF302D70), Color(0xFF1D1B4B)))),
+                contentAlignment = Alignment.Center
+            ) {
+                Canvas(Modifier.fillMaxSize()) {
+                    val glow = Color(0xFF9872FF)
+                    drawCircle(glow.copy(alpha = 0.12f), radius = size.minDimension * 0.43f)
+                    val cx = size.width / 2f
+                    val cy = size.height / 2f
+                    val stroke = size.minDimension * 0.055f
+                    when (kind) {
+                        "headphones" -> {
+                            val arc = Path().apply {
+                                moveTo(cx - size.width * .27f, cy + size.height * .13f)
+                                cubicTo(cx - size.width * .30f, cy - size.height * .47f, cx + size.width * .30f, cy - size.height * .47f, cx + size.width * .27f, cy + size.height * .13f)
+                            }
+                            drawPath(arc, Color(0xFFB69AFF), style = Stroke(stroke * 1.7f, cap = StrokeCap.Round))
+                            drawRoundRect(Color(0xFF8A63F5), Offset(cx - size.width * .34f, cy - size.height * .02f), Size(size.width * .17f, size.height * .38f), androidx.compose.ui.geometry.CornerRadius(stroke * 2))
+                            drawRoundRect(Color(0xFF8A63F5), Offset(cx + size.width * .17f, cy - size.height * .02f), Size(size.width * .17f, size.height * .38f), androidx.compose.ui.geometry.CornerRadius(stroke * 2))
+                            drawRoundRect(Color(0xFFD8C8FF), Offset(cx - size.width * .31f, cy + size.height * .04f), Size(size.width * .10f, size.height * .24f), androidx.compose.ui.geometry.CornerRadius(stroke))
+                            drawRoundRect(Color(0xFFD8C8FF), Offset(cx + size.width * .21f, cy + size.height * .04f), Size(size.width * .10f, size.height * .24f), androidx.compose.ui.geometry.CornerRadius(stroke))
+                        }
+                        "glasses" -> {
+                            drawRoundRect(Color(0xFFB99BFF), Offset(cx - size.width * .39f, cy - size.height * .18f), Size(size.width * .32f, size.height * .34f), androidx.compose.ui.geometry.CornerRadius(size.minDimension * .12f), style = Stroke(stroke))
+                            drawRoundRect(Color(0xFFB99BFF), Offset(cx + size.width * .07f, cy - size.height * .18f), Size(size.width * .32f, size.height * .34f), androidx.compose.ui.geometry.CornerRadius(size.minDimension * .12f), style = Stroke(stroke))
+                            drawLine(Color(0xFFD8C8FF), Offset(cx - size.width * .07f, cy - size.height * .04f), Offset(cx + size.width * .07f, cy - size.height * .04f), stroke)
+                            drawLine(Color(0xFFB99BFF), Offset(cx - size.width * .39f, cy - size.height * .07f), Offset(cx - size.width * .48f, cy - size.height * .15f), stroke * .75f)
+                            drawLine(Color(0xFFB99BFF), Offset(cx + size.width * .39f, cy - size.height * .07f), Offset(cx + size.width * .48f, cy - size.height * .15f), stroke * .75f)
+                        }
+                        "scarf" -> {
+                            val scarf = Path().apply {
+                                moveTo(cx - size.width * .30f, cy - size.height * .22f)
+                                quadraticTo(cx, cy - size.height * .02f, cx + size.width * .30f, cy - size.height * .22f)
+                                lineTo(cx + size.width * .23f, cy + size.height * .03f)
+                                lineTo(cx + size.width * .17f, cy + size.height * .43f)
+                                lineTo(cx - size.width * .01f, cy + size.height * .43f)
+                                lineTo(cx - size.width * .02f, cy + size.height * .02f)
+                                quadraticTo(cx - size.width * .24f, cy + size.height * .05f, cx - size.width * .30f, cy - size.height * .22f)
+                                close()
+                            }
+                            drawPath(scarf, Brush.verticalGradient(listOf(Color(0xFFB08AFF), Color(0xFF6947D5))))
+                            drawLine(Color(0xFFD8C8FF), Offset(cx - size.width * .18f, cy + size.height * .14f), Offset(cx - size.width * .18f, cy + size.height * .37f), stroke * .65f)
+                            drawLine(Color(0xFFD8C8FF), Offset(cx + size.width * .09f, cy + size.height * .15f), Offset(cx + size.width * .09f, cy + size.height * .37f), stroke * .65f)
+                        }
+                        else -> {
+                            val crown = Path().apply {
+                                moveTo(cx - size.width * .32f, cy + size.height * .05f)
+                                quadraticTo(cx - size.width * .30f, cy - size.height * .32f, cx, cy - size.height * .34f)
+                                quadraticTo(cx + size.width * .31f, cy - size.height * .31f, cx + size.width * .32f, cy + size.height * .05f)
+                                close()
+                            }
+                            drawPath(crown, Brush.verticalGradient(listOf(Color(0xFF9D79FF), Color(0xFF6546C8))))
+                            drawArc(Color(0xFFB99BFF), 8f, 164f, false, Offset(cx - size.width * .43f, cy - size.height * .02f), Size(size.width * .86f, size.height * .40f), style = Stroke(stroke * 1.4f, cap = StrokeCap.Round))
+                            drawLine(Color(0xFFD8C8FF), Offset(cx, cy - size.height * .27f), Offset(cx, cy + size.height * .02f), stroke * .45f)
+                        }
+                    }
+                    drawCircle(Color.White.copy(alpha = .7f), radius = stroke * .32f, center = Offset(cx + size.width * .34f, cy - size.height * .34f))
                 }
             }
             Text(name, color = Ink, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, textAlign = TextAlign.Center, maxLines = 1)
